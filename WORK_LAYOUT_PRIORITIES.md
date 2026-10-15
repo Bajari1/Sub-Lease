@@ -73,3 +73,69 @@ This document tracks the full engineering execution order for ***SUB-LEASE***, o
    - Enforces the `Max 30 Awake Rigidbodies per Room` cap (`AwakeRBs=12/30`), locks `Time.fixedDeltaTime = 1f / 72f` (72Hz Quest 3 solver), and sleeps distant undisturbed rigidbodies (`>28m`).
 - [x] **Streamer Spectator Cam & Picture-in-Picture Trap Cam ([`StreamerSpectatorCam`](./Assets/Scripts/Core/QuestOptimizationAndStreamerCam.cs)):**
    - Smoothed wide-FOV (`92°`) desktop spectator camera with a live `[F9]` Picture-in-Picture **"Trap Cam"** (`256x144` RenderTexture) monitoring the Abyssal Shaft and rigged traps.
+
+---
+
+# 🗺️ PHASE 2 ROADMAP: Production Polish, Seeded Replayability, Audio/Visual Overhaul & Hardware Release (P6–P10)
+
+With the entire mechanical, networking, AI, and physics simulation foundation (**P0–P5**) complete and verified across two clients, **Phase 2** transforms the systemic greybox build into a commercial-grade PCVR, Desktop Co-Op, and Meta Quest 3 release.
+
+---
+
+## 🔄 P6: Seeded Procedural Shift Loop, Multi-Day Quota Progression & "Abyssal Eviction"
+*Goal: Turn the vertical slice into an infinitely replayable roguelite extraction loop.*
+
+1. **Seeded Procedural Floor & Shaft Generator (`SeededShiftGenerator.cs`):**
+   - Synchronize a `uint ShiftSeed` via [`LobbyManager.cs`](./Assets/Scripts/Networking/LobbyManager.cs) across all connected clients.
+   - Procedurally vary room layouts, doorway bottlenecks (forcing $90^\circ$ desk rotations or window rappels), shaft drop offsets, loot spawn tables, and entity starting vents per shift seed.
+2. **Physical Blast-Door Extraction Lever & 3-Day Quota Cycle:**
+   - Add a physical **Hydraulic Extraction Lever** in the `0m` Drop Hatch room. Pulling it seals the shaft blast doors, cashes in all furniture on the [`CargoScaleZone`](./Assets/Scripts/Gameplay/LootAppraisalAndQuotaManager.cs), repairs/restocks the room, and advances to the next Shift Day (`Day 1 -> Day 2 -> Day 3`) with escalating quotas (`$1,500 -> $2,800 -> $4,500+`).
+3. **Quota Failure Consequence ("The Abyssal Eviction"):**
+   - If the crew fails to meet the 3-Day Quota when pulling the lever on Day 3, trigger the **Abyssal Eviction** sequence: sirens blare, the `0m` Drop Hatch floor unlatches, and the entire room plummets into the `-74m` Centrifuge shaft.
+
+---
+
+## 🎨 P7: Liminal PBR Visual Overhaul, Volumetric Shaft Lighting & Fracture VFX
+*Goal: Replace solid-color greybox materials with atmospheric Kane Pixels-style liminal aesthetics and tactile destruction feedback.*
+
+1. **Procedural Liminal PBR Surface & Texture Generator (`LiminalMaterialGenerator.cs`):**
+   - Generate procedural high-contrast normal/albedo textures at runtime for **1990s damp yellow chevron wallpaper**, **stained acoustic ceiling tiles**, **wet brutalist board-formed concrete**, **glossy Poolrooms ceramic tiles**, and **wood/leather/velvet/marble furniture finishes**.
+2. **Flickering Fluorescent Ballasts & Volumetric Shaft Fog:**
+   - Add dynamic fluorescent ceiling light fixtures that flicker when entities pass underneath or when heavy collisions shake the sector, paired with depth-graded abyssal fog (`#d4cf99` yellow haze at `-18m` -> `#0c2836` deep aqua at `-56m` -> `#1a0d0a` industrial rust at `-74m`).
+3. **Physical Shatter, Spark & Markdown VFX (`LootDestructionVfxSystem.cs`):**
+   - Spawn physical glass shards, wood splinters, or electrical arcs when fragile furniture (*Venetian Crystal Chandelier*, *Gilded Baroque Mirror*, *Polybius Arcade Cabinet*) impacts surfaces $>5\text{ m/s}$, accompanied by floating 3D `-$350 SCRATCHED!` markdown popups.
+
+---
+
+## 🔊 P8: Multi-Channel Spatial 3D Audio Synthesizer & Shaft Reverb
+*Goal: Make every rope strain, footsteps, monster rattle, and furniture scrape audible in 3D space without relying on external audio files.*
+
+1. **Procedural 3D Foley & Mechanical Audio Synthesizer (`ProceduralAudioSynthesizer.cs`):**
+   - Synthesize real-time spatialized `AudioClip` waveforms on every physical interaction:
+     - **Rope Strain Creak:** Pitch and click rate scale continuously with Newton tension ratio ($T / T_{\max}$) between `75%` and `99%` right before a rope snaps.
+     - **Ratchet Winch & Pulley Clicks:** Crisp metallic ratcheting clicks on every hand-over-hand hoist pull.
+     - **Duct Tape Rip & Piton Impact:** High-frequency adhesive tear and resonant steel-on-concrete hammer ring.
+     - **Entity Signatures:** Heavy pneumatic hoof impacts (*The Ram*), wet chitinous slithering (*The Seep*), 48 BPM muffled organic heartbeat (*The Mimic*), ceiling winch cable whine (*The Counterweight*), and metallic harmonic resonance (*The Tuning Fork*).
+2. **Acoustic Shaft Reverb & Occlusion:**
+   - Apply distance-based low-pass filtering through closed fire doors and vertical shaft echo reflections.
+
+---
+
+## 🥽 P9: Native OpenXR 6-DOF Hardware Integration & Diegetic Liquidator Wristwatch
+*Goal: Full plug-and-play VR headset + motion controller support alongside Desktop Co-Op cross-play.*
+
+1. **OpenXR 6-DOF Controller & Haptics Bridge (`OpenXRHardwareBridge.cs`):**
+   - Bind `UnityEngine.XR.InputDevices` (Headset, Left Controller, Right Controller) directly into [`DualPhysicsPlayerRig.cs`](./Assets/Scripts/Player/DualPhysicsPlayerRig.cs) so VR players physically reach, grab (`Grip`), climb ropes hand-over-hand, weld duct tape (`Trigger`), and feel controller haptic pulses proportional to object weight and rope tension.
+2. **Diegetic 3D Liquidator Wristwatch (`LiquidatorWristwatchUI.cs`):**
+   - Mount a physical 3D retro digital watch on the player's left wrist displaying live **Depth (`-38m`)**, **Banked Cash & Quota (`$1,500`)**, **Live Voice Mic Decibel Bar (`dB`)**, and **Lobby Room Code (`SL-XXXX`)**, allowing players to toggle off the debug `OnGUI` overlay (`[F1]`) for 100% diegetic immersion.
+
+---
+
+## 📦 P10: Meta Quest 3 APK Build Target, Persistent Save Profiles & Steam Next Fest Packaging
+*Goal: Ship-ready builds for both Windows PCVR/Desktop and Meta Quest 3 Standalone.*
+
+1. **Automated Meta Quest 3 APK Builder (`BuildQuest3StandaloneApk`):**
+   - Extend [`SubLeaseEditorBuilder.cs`](./Assets/Scripts/Editor/SubLeaseEditorBuilder.cs) to compile an IL2CPP ARM64 Android APK (`Builds/Quest3/SubLease_Quest3.apk`) pre-configured with OpenXR and the `RoomPhysicsCuller` 72Hz guardrail.
+2. **Persistent Liquidator Career Save System (`CareerProgressionManager.cs`):**
+   - Save unlocked Work Belt perks, lifetime extracted dollars, deepest sector reached, and custom hazmat suit colors across sessions.
+
