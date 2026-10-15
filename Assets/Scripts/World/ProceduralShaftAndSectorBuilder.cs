@@ -31,6 +31,9 @@ namespace SubLease.World
 
             // 5. Spawn the 5 Physics-Quirk Entities
             SpawnSectorEntities(worldRoot.transform, -18f);
+
+            // 6. P4: Build Deep Macro-Physics Sectors 2–4 (-38m Archive, -56m Poolrooms Buoyancy, -74m Tilted Hotel & HVAC) + 3 Apex Bosses
+            DeepMacroPhysicsSectorBuilder.BuildDeepSectorsAndApexBosses(worldRoot.transform);
         }
 
         private static void BuildDropHatchStagingRoom(Transform parent)

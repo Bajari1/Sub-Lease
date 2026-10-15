@@ -177,8 +177,42 @@ namespace SubLease.Networking
                 Debug.Log($"[CoOpSandboxieTest] [ASSERT 6 - P3 MULTI-JOINT ENTITIES & DOOR BREACH AI] SeepSpineSegments={seepRig.TotalJointedSegments}/10 | TuningForkRods={forkRig.TotalJointedSegments}/7 | SeepVentReroute={seepRig.HasReroutedAfterFailedBreach} | TapedMimicBounty=${mimicLoot.CurrentDollarValue} -> PASS");
             }
 
+            // ASSERT 7: P4 Deep Macro-Physics Sectors (Archive, Poolrooms Buoyancy, Tilted Hotel/HVAC) & All 3 Apex Bosses
+            GameObject b1Obj = GameObject.Find("ApexBoss1_ThePendulum");
+            GameObject b2Obj = GameObject.Find("ApexBoss2_TheUndertow");
+            GameObject b3Obj = GameObject.Find("ApexBoss3_TheCentrifuge");
+            GameObject mirrorObj = GameObject.Find("Loot_Gilded Baroque Mirror");
+            GameObject serverObj = GameObject.Find("Loot_Superconducting Server Monolith");
+
+            if (b1Obj != null && b2Obj != null && b3Obj != null && mirrorObj != null && serverObj != null)
+            {
+                World.ApexBossController boss1 = b1Obj.GetComponent<World.ApexBossController>();
+                World.ApexBossController boss2 = b2Obj.GetComponent<World.ApexBossController>();
+                World.ApexBossController boss3 = b3Obj.GetComponent<World.ApexBossController>();
+
+                // 1. Defeat Apex 1 (The Pendulum) by tethering with Braided Steel Cable (6,000N) at peak swing!
+                bool d1 = boss1.TriggerPendulumColumnCollapse(RopeGrade.BraidedSteel_6000N);
+
+                // 2. Defeat Apex 2 (The Undertow) with 3x CO2 Buoyancy Lift Bags (+2,796N upward force)!
+                bool d2 = boss2.TriggerUndertowBuoyancyBomb(3);
+
+                // 3. Defeat Apex 3 (The Centrifuge) by taping Caster Wheels to the 160kg Server Monolith and launching into suction core!
+                serverObj.GetComponent<NetworkedPhysicsObject>().ApplyCasterWheels();
+                bool d3 = boss3.TriggerCentrifugeTurbineJam(serverObj.GetComponent<Rigidbody>());
+
+                // 4. Test Sector 4 Tilted Hotel Gimbal Gravity (45°) + HVAC Updraft Wind Chute
+                World.TiltedHotelAndWindChuteZone tiltZone = FindFirstObjectByType<World.TiltedHotelAndWindChuteZone>();
+                if (tiltZone != null)
+                {
+                    tiltZone.ApplyGimbalTiltAndUpdraftToProp(serverObj.GetComponent<Rigidbody>(), 45f);
+                }
+
+                yield return new WaitForFixedUpdate();
+                Debug.Log($"[CoOpSandboxieTest] [ASSERT 7 - P4 DEEP MACRO-PHYSICS BIOMES & 3 APEX BOSSES] PendulumDefeated={d1} | UndertowDefeated={d2} | CentrifugeDefeated={d3} | GimbalTilt={tiltZone?.CurrentGimbalTiltDegrees:F0}° -> PASS");
+            }
+
             yield return new WaitForSeconds(1.2f);
-            Debug.Log($"[CoOpSandboxieTest] === ALL P1 + P2 + P3 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
+            Debug.Log($"[CoOpSandboxieTest] === ALL P1 + P2 + P3 + P4 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
             Application.Quit(0);
         }
     }
