@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SUB-LEASE: Master Game Design Document & Item Bible</title>
+<style>
+  @page {
+    size: letter;
+    margin: 0.55in 0.6in;
+  }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+    color: #18181b;
+    background: #ffffff;
+    line-height: 1.42;
+    font-size: 9.5pt;
+    margin: 0;
+    padding: 0;
+  }
+  .cover-banner {
+    background: #111827;
+    color: #f9fafb;
+    padding: 24px 28px;
+    border-left: 8px solid #eab308;
+    border-radius: 4px;
+    margin-bottom: 18px;
+  }
+  .cover-banner .doc-tag {
+    color: #eab308;
+    font-size: 8.5pt;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .cover-banner h1 {
+    font-size: 24pt;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+  }
+  .cover-banner .subtitle {
+    font-size: 10.5pt;
+    color: #d1d5db;
+    margin: 0 0 14px 0;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    border-top: 1px solid #374151;
+    padding-top: 12px;
+    font-size: 8.5pt;
+  }
+  .meta-item strong {
+    display: block;
+    color: #9ca3af;
+    font-size: 7.5pt;
+    text-transform: uppercase;
+  }
+  .meta-item span {
+    color: #f3f4f6;
+    font-weight: 600;
+  }
+  h2 {
+    font-size: 13.5pt;
+    color: #111827;
+    border-bottom: 2px solid #eab308;
+    padding-bottom: 4px;
+    margin: 18px 0 10px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    page-break-after: avoid;
+  }
+  h3 {
+    font-size: 10.5pt;
+    color: #1f2937;
+    margin: 12px 0 6px 0;
+    background: #f3f4f6;
+    padding: 5px 10px;
+    border-left: 4px solid #111827;
+    page-break-after: avoid;
+  }
+  p {
+    margin: 0 0 8px 0;
+  }
+  .callout {
+    background: #fefce8;
+    border: 1px solid #fde047;
+    border-left: 5px solid #eab308;
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-bottom: 14px;
+  }
+  .callout strong {
+    color: #854d0e;
+  }
+  .pillars {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+  .pillar-card {
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
+  .pillar-card h4 {
+    margin: 0 0 4px 0;
+    font-size: 9.5pt;
+    color: #111827;
+  }
+  .pillar-card p {
+    margin: 0;
+    font-size: 8.5pt;
+    color: #4b5563;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 12px;
+    font-size: 8.3pt;
+  }
+  th {
+    background: #1f2937;
+    color: #ffffff;
+    text-align: left;
+    padding: 6px 8px;
+    font-weight: 600;
+    font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  td {
+    padding: 5px 8px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+  }
+  tr:nth-child(even) td {
+    background: #f9fafb;
+  }
+  tr {
+    page-break-inside: avoid;
+  }
+  .badge {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 7.5pt;
+    background: #e5e7eb;
+    color: #111827;
+  }
+  .badge-price {
+    background: #dcfce7;
+    color: #166534;
+  }
+  .badge-starter {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+  .badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+  .stat-code {
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 7.8pt;
+    color: #b45309;
+    background: #fffbeb;
+    padding: 1px 4px;
+    border-radius: 2px;
+    border: 1px solid #fde68a;
+    display: inline-block;
+    margin-bottom: 2px;
+  }
+  .page-break {
+    page-break-before: always;
+  }
+  .loop-flow {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+    margin: 10px 0 14px 0;
+  }
+  .loop-step {
+    background: #111827;
+    color: #ffffff;
+    padding: 8px;
+    border-radius: 4px;
+    border-top: 3px solid #eab308;
+    font-size: 7.8pt;
+  }
+  .loop-step strong {
+    display: block;
+    color: #eab308;
+    font-size: 8pt;
+    margin-bottom: 3px;
+  }
+</style>
+</head>
+<body>
+
+<div class="cover-banner">
+  <div class="doc-tag">Master Game Design Document &amp; Complete Item Compendium // v2.0</div>
+  <h1>SUB-LEASE</h1>
+  <div class="subtitle">Physics-Driven Co-Op &amp; Solo VR Liminal Furniture Heist &amp; Vertical Extraction Sim</div>
+  <div class="meta-grid">
+    <div class="meta-item"><strong>Target Demographic</strong><span>Ages 15–30 (PCVR &amp; Quest 3)</span></div>
+    <div class="meta-item"><strong>Core Inspiration</strong><span>Lethal Company × R.E.P.O. × Boneworks</span></div>
+    <div class="meta-item"><strong>Engine &amp; Physics</strong><span>Unity 6 + PhysX 5 + OpenXR</span></div>
+    <div class="meta-item"><strong>Target Price</strong><span>$19.99 – $24.99</span></div>
+  </div>
+</div>
+
+<div class="callout">
+  <strong>THE 10-SECOND HOOK:</strong> You and your crew breach a vertical maintenance hatch into the Backrooms for one reason: <strong>millions of dollars of untaxed, pristine Mid-Century Modern furniture, crystal chandeliers, arcade cabinets, and anomalous sculptures sitting down there for free.</strong> Rappel down vertical tubes into deeper liminal floors, steal heavy furniture, protect it from physics-driven monsters, and engineer pulleys, counterweights, and duct-tape contraptions to hoist a $3,500 haul back up a 100-foot shaft.
+</div>
+
+<div class="pillars">
+  <div class="pillar-card">
+    <h4>1. Your Loot IS Your Barricade</h4>
+    <p>Every piece of furniture is both <strong>Money ($)</strong> and a <strong>Physics Tool</strong>. Wedging an $850 Mahogany Chair under a doorknob stops a monster—but every dent lowers its resale value!</p>
+  </div>
+  <div class="pillar-card">
+    <h4>2. Vertical Rappel Engineering</h4>
+    <p>Sliding down a 100ft tube is easy. Getting a 220kg Marble Statue <em>back up</em> requires rigging 4x pulleys, dropping heavy counterweights, or inflating CO2 salvage bags.</p>
+  </div>
+  <div class="pillar-card">
+    <h4>3. 100% Universal Physics</h4>
+    <p>Zero scripted lock-and-key puzzles. Flashlights, grappling hooks, ropes, and tape are physical rigidbodies that combine freely into traps, decoys, and vehicles.</p>
+  </div>
+</div>
+
+<h2>1. The 6-Stage Core Gameplay Loop (15–25 Minute Runs)</h2>
+<div class="loop-flow">
+  <div class="loop-step"><strong>1. Drop Hatch (0m)</strong>Check 3-Day Quota, buy ropes/tape/grapples, anchor primary lines.</div>
+  <div class="loop-step"><strong>2. Rappel Tubes</strong>Clip Waist Carabiner &amp; descend vertical shafts (-30m to -600m).</div>
+  <div class="loop-step"><strong>3. Recon &amp; Scan</strong>Appraise furniture ($/kg), scan for Mimics with UV light &amp; scales.</div>
+  <div class="loop-step"><strong>4. Prep &amp; Rig</strong>Tape caster wheels to sofas, wrap fragile loot, set tripwires.</div>
+  <div class="loop-step"><strong>5. Vertical Haul</strong>Pulley-hoist or counterweight-lift loot up shafts under attack.</div>
+  <div class="loop-step"><strong>6. Cargo Scale</strong>Weigh intact furniture &amp; taped monsters, cash out, upgrade gear.</div>
+</div>
+
+<h2>2. Complete Equipment &amp; Item Compendium (36 Physical Tools)</h2>
+<p>Every item clips physically to the player's <strong>Utility Belt</strong> or stows in the <strong>Equipment Crate</strong>, and obeys universal PhysX mass, joint tension, friction, and acoustic impulse rules.</p>
+
+<h3>Category A: Ropes, Tethers &amp; Rappelling Gear</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:5%">ID</th>
+      <th style="width:22%">Item Name</th>
+      <th style="width:9%">Cost</th>
+      <th style="width:24%">Physical Parameters</th>
+      <th style="width:40%">Systemic Gameplay &amp; Physics Uses</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>A1</strong></td>
+      <td><strong>Hemp Twine Spool</strong></td>
+      <td><span class="badge badge-starter">Starter</span></td>
+      <td><span class="stat-code">Len: 30m | Break: 800N</span></td>
+      <td>Basic door tying, shin-height tripwires, and light rappelling. Snaps if hoisting loads &gt;80kg without a pulley or if chewed by <em>The Seep</em>.</td>
+    </tr>
+    <tr>
+      <td><strong>A2</strong></td>
+      <td><strong>Dynamic Climbing Rope</strong></td>
+      <td><span class="badge badge-price">$250</span></td>
+      <td><span class="stat-code">Len: 80m | Break: 2,200N</span></td>
+      <td>8% elastic stretch absorbs sudden kinetic shock when rappelling deep shafts or catching falling furniture mid-air.</td>
+    </tr>
+    <tr>
+      <td><strong>A3</strong></td>
+      <td><strong>Braided Steel Cable</strong></td>
+      <td><span class="badge badge-price">$650</span></td>
+      <td><span class="stat-code">Len: 150m | Break: 6,000N</span></td>
+      <td>Unbreakable by monsters, immune to sharp concrete edges, and <strong>conducts electricity</strong> between wall junction boxes and metal doors.</td>
+    </tr>
+    <tr>
+      <td><strong>A4</strong></td>
+      <td><strong>Industrial Bungee Cord</strong></td>
+      <td><span class="badge badge-price">$300</span></td>
+      <td><span class="stat-code">Len: 15m | Spring k: 450N/m</span></td>
+      <td>Stores elastic potential energy (<em>F = -kx</em>). Pull a heavy door back against a bungee, hold with thin twine, and let a monster trip it to slam at 60 mph.</td>
+    </tr>
+    <tr>
+      <td><strong>A5</strong></td>
+      <td><strong>Waist Brake Carabiner</strong></td>
+      <td><span class="badge badge-starter">Starter</span></td>
+      <td><span class="stat-code">Trigger Friction | Lock-Off</span></td>
+      <td>Squeeze trigger to control rappel descent speed, or toggle Lock-Off to <strong>hang mid-air inside a vertical shaft with both hands free!</strong></td>
+    </tr>
+    <tr>
+      <td><strong>A6</strong></td>
+      <td><strong>Motorized Belt Ascender</strong></td>
+      <td><span class="badge badge-price">$1,100</span></td>
+      <td><span class="stat-code">Lift: 3,000N | Noise: 85 dB</span></td>
+      <td>Battery winch that reels you and 120kg of furniture straight up a vertical shaft at 4 m/s—<em>but its loud whine draws The Tuning Fork!</em></td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Category B: Grappling Hooks, Harpoons &amp; Anchor Hardware</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:5%">ID</th>
+      <th style="width:22%">Item Name</th>
+      <th style="width:9%">Cost</th>
+      <th style="width:24%">Physical Parameters</th>
+      <th style="width:40%">Systemic Gameplay &amp; Physics Uses</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>B1</strong></td>
+      <td><strong>3-Pronged Throwing Grapple</strong></td>
+      <td><span class="badge badge-price">$200</span></td>
+      <td><span class="stat-code">Mass: 3.5kg | Hold: 2,000N</span></td>
+      <td>Swing by hand in VR like a pendulum and throw! Clamps onto pipes, vents, chandeliers, or <strong>distant furniture</strong> to "fish" loot across pools or up shafts.</td>
+    </tr>
+    <tr>
+      <td><strong>B2</strong></td>
+      <td><strong>Pneumatic Piton Harpoon</strong></td>
+      <td><span class="badge badge-price">$750</span></td>
+      <td><span class="stat-code">Range: 35m | Hold: 5,000N</span></td>
+      <td>Compressed-air gun that fires a tethered steel spike into solid concrete ceilings or <strong>directly into a monster</strong>—harpoon <em>The Ram</em> to a 300kg pillar!</td>
+    </tr>
+    <tr>
+      <td><strong>B3</strong></td>
+      <td><strong>Silent Magnetic Grapple</strong></td>
+      <td><span class="badge badge-price">$450</span></td>
+      <td><span class="stat-code">Hold: 2,500N | Noise: 5 dB</span></td>
+      <td>Rubber-coated neodymium magnet head. Locks onto metal air ducts, steel doors, and filing cabinets with <strong>zero metallic clatter</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>B4</strong></td>
+      <td><strong>Suction Cup Pitons (3-Pack)</strong></td>
+      <td><span class="badge badge-price">$220</span></td>
+      <td><span class="stat-code">Hold: 1,500N | Reusable</span></td>
+      <td>Stick onto any flat wall, glass window, or tile ceiling to create a custom rope anchor, pulley mount, or tripwire post where no pipe exists.</td>
+    </tr>
+    <tr>
+      <td><strong>B5</strong></td>
+      <td><strong>Compound Pulley Block</strong></td>
+      <td><span class="badge badge-price">$350</span></td>
+      <td><span class="stat-code">Advantage: 2x or 4x Force</span></td>
+      <td>Clip to a shaft top and thread rope through sheaves. Divides effective furniture weight by 4, letting one player hoist a 220kg marble statue by hand!</td>
+    </tr>
+    <tr>
+      <td><strong>B6</strong></td>
+      <td><strong>Ratchet One-Way Cleat</strong></td>
+      <td><span class="badge badge-price">$180</span></td>
+      <td><span class="stat-code">One-Way Lock | Max: 4,000N</span></td>
+      <td>Automatically locks hoisted rope progress so if you let go mid-haul to fight an entity, your sofa doesn't plummet back down the shaft.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h3>Category C: Flashlights, Illumination &amp; Optical Scanners</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:5%">ID</th>
+      <th style="width:22%">Item Name</th>
+      <th style="width:9%">Cost</th>
+      <th style="width:24%">Physical Parameters</th>
+      <th style="width:40%">Systemic Gameplay &amp; Physics Uses</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>C1</strong></td>
+      <td><strong>Angle-Head Clip Light</strong></td>
+      <td><span class="badge badge-starter">Starter</span></td>
+      <td><span class="stat-code">Bat: 15m | Click: 35 dB</span></td>
+      <td>Clips to belt for hands-free rappelling, or <strong>duct-tapes to a rolling chair / ceiling rope</strong> to create a swinging pendulum spotlight decoy.</td>
+    </tr>
+    <tr>
+      <td><strong>C2</strong></td>
+      <td><strong>High-Lumen Halogen Flood</strong></td>
+      <td><span class="badge badge-price">$400</span></td>
+      <td><span class="stat-code">Mass: 6kg | Beam: 10,000 lm</span></td>
+      <td><strong>Shining its high beam directly into <em>The Counterweight</em>'s ceiling hole or at <em>The Seep</em> burns/blinds them</strong>, forcing them to drop stolen loot or teammates!</td>
+    </tr>
+    <tr>
+      <td><strong>C3</strong></td>
+      <td><strong>UV Blacklight Inspector</strong></td>
+      <td><span class="badge badge-price">$300</span></td>
+      <td><span class="stat-code">365nm UV | Bat: 25m</span></td>
+      <td>Reveals invisible <strong>hairline cracks</strong> on fragile loot, highlights <strong>fraying rope fibers</strong> under tension, and exposes <strong>glowing veins on sleeping Mimics!</strong></td>
+    </tr>
+    <tr>
+      <td><strong>C4</strong></td>
+      <td><strong>Hand-Crank Dynamo Lantern</strong></td>
+      <td><span class="badge badge-price">$180</span></td>
+      <td><span class="stat-code">Infinite Bat | Crank: 60 dB</span></td>
+      <td>Hang from a rope mid-room or tie to your loot cart for 360° light. Never runs out of power, but cranking it generates mechanical sound.</td>
+    </tr>
+    <tr>
+      <td><strong>C5</strong></td>
+      <td><strong>Strobe &amp; Siren Flare</strong></td>
+      <td><span class="badge badge-price">$150</span></td>
+      <td><span class="stat-code">30s Burn | 115 dB + Strobe</span></td>
+      <td>Pull pin and throw (or tape onto <em>The Ram</em>!). Blinds light-sensitive monsters and deafens <em>The Tuning Fork</em> so you can extract loudly.</td>
+    </tr>
+    <tr>
+      <td><strong>C6</strong></td>
+      <td><strong>Laser Trip-Beam Pointer</strong></td>
+      <td><span class="badge badge-price">$140</span></td>
+      <td><span class="stat-code">Range: 40m | Silent Alert</span></td>
+      <td>Tape across a hallway or shaft opening; vibrates your belt receiver the instant a stalking entity breaks the laser line.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Category D: Tapes, Adhesives &amp; Protective Packaging</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:5%">ID</th>
+      <th style="width:22%">Item Name</th>
+      <th style="width:9%">Cost</th>
+      <th style="width:24%">Physical Parameters</th>
+      <th style="width:40%">Systemic Gameplay &amp; Physics Uses</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>D1</strong></td>
+      <td><strong>Standard Grey Duct Tape</strong></td>
+      <td><span class="badge badge-price">$60</span></td>
+      <td><span class="stat-code">20 Strips | 1,200N / strip</span></td>
+      <td>Welds any two props into a single compound rigidbody; seals ceiling vents; locks door seams. Strips stack linearly in break strength.</td>
+    </tr>
+    <tr>
+      <td><strong>D2</strong></td>
+      <td><strong>Kevlar Strapping Tape</strong></td>
+      <td><span class="badge badge-price">$280</span></td>
+      <td><span class="stat-code">15 Strips | 4,500N / strip</span></td>
+      <td>Fiberglass-reinforced tape. Strong enough to <strong>tape a sleeping Mimic's jaws shut</strong> (4 strips) so you can haul the live monster up and sell it!</td>
+    </tr>
+    <tr>
+      <td><strong>D3</strong></td>
+      <td><strong>Acoustic Foam Tape</strong></td>
+      <td><span class="badge badge-price">$200</span></td>
+      <td><span class="stat-code">12 Strips | Sound: -90%</span></td>
+      <td>Wrap around furniture corners, rattling door handles, grapple claws, or boots to haul heavy loot past <em>The Tuning Fork</em> in dead silence.</td>
+    </tr>
+    <tr>
+      <td><strong>D4</strong></td>
+      <td><strong>Rubber Electrical Tape</strong></td>
+      <td><span class="badge badge-price">$150</span></td>
+      <td><span class="stat-code">15 Strips | 100% Insulation</span></td>
+      <td>Wrap around metal crowbars, steel cables, or electrified door handles so you can safely touch high-voltage traps that stun entities.</td>
+    </tr>
+    <tr>
+      <td><strong>D5</strong></td>
+      <td><strong>Heavy Bubble-Wrap Roll</strong></td>
+      <td><span class="badge badge-price">$180</span></td>
+      <td><span class="stat-code">4 Uses | Dent Damage: -85%</span></td>
+      <td>Wrap around fragile high-dollar loot (Chandeliers, Glass Tables, Arcade Cabinets) so shaft-wall impacts during hoisting don't ruin resale value.</td>
+    </tr>
+    <tr>
+      <td><strong>D6</strong></td>
+      <td><strong>Industrial Flypaper Strip</strong></td>
+      <td><span class="badge badge-price">$130</span></td>
+      <td><span class="stat-code">4m Roll | Shear Drag: 900N</span></td>
+      <td>Unroll across floors or inside vertical vents. Slows <em>The Seep</em> to a crawl and gums up charging enemies' limbs.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Category E: Moving-Company Hardware, Leverage &amp; Surface Tools</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:5%">ID</th>
+      <th style="width:22%">Item Name</th>
+      <th style="width:9%">Cost</th>
+      <th style="width:24%">Physical Parameters</th>
+      <th style="width:40%">Systemic Gameplay &amp; Physics Uses</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>E1</strong></td>
+      <td><strong>Swivel Caster Wheels (4x)</strong></td>
+      <td><span class="badge badge-price">$140</span></td>
+      <td><span class="stat-code">Friction: 0.015 | Max: 300kg</span></td>
+      <td><strong>Duct-tape onto the bottom of any heavy sofa, safe, or wardrobe</strong> to turn a 150kg object into a smooth rolling cart or downhill battering ram!</td>
+    </tr>
+    <tr>
+      <td><strong>E2</strong></td>
+      <td><strong>Steel Crowbar / Lever Pipe</strong></td>
+      <td><span class="badge badge-price">$120</span></td>
+      <td><span class="stat-code">Len: 1.2m | Leverage: 5x</span></td>
+      <td>Pry jammed doors, lift 300kg slabs over a fulcrum brick, hook over taut steel cables to <strong>zip-line across atriums</strong>, or crossbar double doors.</td>
+    </tr>
+    <tr>
+      <td><strong>E3</strong></td>
+      <td><strong>Inflatable CO2 Lift Bag</strong></td>
+      <td><span class="badge badge-price">$380</span></td>
+      <td><span class="stat-code">Upward Lift: +95kg Buoyancy</span></td>
+      <td>Tape to heavy furniture at the bottom of a shaft or flooded pool and pull the lanyard—inflates a salvage balloon that floats 95kg to the ceiling!</td>
+    </tr>
+    <tr>
+      <td><strong>E4</strong></td>
+      <td><strong>Slip-Detergent Jug</strong></td>
+      <td><span class="badge badge-price">$110</span></td>
+      <td><span class="stat-code">4 Uses | Friction: 0.005</span></td>
+      <td>Pour in front of open shafts or stairs so charging monsters slide off ledges; also lets you slide heavy crates across carpet with one hand.</td>
+    </tr>
+    <tr>
+      <td><strong>E5</strong></td>
+      <td><strong>Spring-Loaded Box Cutter</strong></td>
+      <td><span class="badge badge-price">$80</span></td>
+      <td><span class="stat-code">0.1s Instant Sever</span></td>
+      <td>Instantly slice taut ropes to drop suspended counterweights on enemies, or emergency-cut a snagged hoist line.</td>
+    </tr>
+    <tr>
+      <td><strong>E6</strong></td>
+      <td><strong>Stair-Climbing Dolly</strong></td>
+      <td><span class="badge badge-price">$320</span></td>
+      <td><span class="stat-code">Tri-Wheel | Perceived Mass: -50%</span></td>
+      <td>Strap tall furniture (Grandfather Clocks, Arcade Cabinets) onto the frame to roll them smoothly up stairs and angled chutes.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Category F: Acoustic, Diagnostic &amp; Remote Gadgets</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:5%">ID</th>
+      <th style="width:22%">Item Name</th>
+      <th style="width:9%">Cost</th>
+      <th style="width:24%">Physical Parameters</th>
+      <th style="width:40%">Systemic Gameplay &amp; Physics Uses</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>F1</strong></td>
+      <td><strong>Wind-Up Kitchen Timer</strong></td>
+      <td><span class="badge badge-price">$90</span></td>
+      <td><span class="stat-code">0–60s Dial | Ring: 95 dB</span></td>
+      <td>Twist dial, tape to a rolling chair or pendulum rope, and let it ring across the sector to bait <em>The Tuning Fork</em> and <em>The Ram</em> into each other.</td>
+    </tr>
+    <tr>
+      <td><strong>F2</strong></td>
+      <td><strong>Digital Hanging Scale</strong></td>
+      <td><span class="badge badge-price">$130</span></td>
+      <td><span class="stat-code">Max: 500kg | Exact kg &amp; $</span></td>
+      <td>Clip between rope and loot. Displays exact mass for counterweight math and <strong>instantly exposes disguised Mimics (always 95.0kg)!</strong></td>
+    </tr>
+    <tr>
+      <td><strong>F3</strong></td>
+      <td><strong>Walkie-Talkie Pair</strong></td>
+      <td><span class="badge badge-price">$160</span></td>
+      <td><span class="stat-code">Relays Voice &amp; Physics Audio</span></td>
+      <td>Talk across deep shafts—OR <strong>leave Walkie B under a ceiling trap in a locked room and yell into Walkie A</strong> from 100m away to trigger an ambush!</td>
+    </tr>
+    <tr>
+      <td><strong>F4</strong></td>
+      <td><strong>Compressed Air-Horn</strong></td>
+      <td><span class="badge badge-price">$100</span></td>
+      <td><span class="stat-code">135 dB Blast | 6s Stun</span></td>
+      <td>Point-blank blast into <em>The Tuning Fork</em> overloads its acoustic receptors and ragdoll-stuns it for 6s (while alerting the whole floor).</td>
+    </tr>
+    <tr>
+      <td><strong>F5</strong></td>
+      <td><strong>Contact Stethoscope</strong></td>
+      <td><span class="badge badge-price">$170</span></td>
+      <td><span class="stat-code">10x Wall/Prop Audio Gain</span></td>
+      <td>Press against doors or suspect armchairs to hear monsters in the next room or detect a <strong>sleeping Mimic's heartbeat</strong>.</td>
+    </tr>
+    <tr>
+      <td><strong>F6</strong></td>
+      <td><strong>RC Motorized Chassis</strong></td>
+      <td><span class="badge badge-price">$420</span></td>
+      <td><span class="stat-code">Speed: 6 m/s | Load: 25kg</span></td>
+      <td>Remote-controlled flatbed. Duct-tape a flashlight, timer, or flare onto it to scout vents and herd entities away from your hoist tube.</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>3. Complete Stealable Furniture &amp; Anomalous Loot Catalog</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:6%">Tier</th>
+      <th style="width:23%">Furniture / Loot Item</th>
+      <th style="width:9%">Depth</th>
+      <th style="width:9%">Value</th>
+      <th style="width:9%">Mass</th>
+      <th style="width:9%">Fragility</th>
+      <th style="width:35%">Special Transport &amp; Physics Quirk</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>T1</strong></td>
+      <td><strong>Swivel Task Chair</strong></td>
+      <td>-20m+</td>
+      <td><span class="badge badge-price">$90</span></td>
+      <td>8 kg</td>
+      <td>Low</td>
+      <td>Built-in caster wheels; great starter door wedge or rolling base for taping boxes on top.</td>
+    </tr>
+    <tr>
+      <td><strong>T1</strong></td>
+      <td><strong>Brass Bankers Lamp</strong></td>
+      <td>-20m+</td>
+      <td><span class="badge badge-price">$180</span></td>
+      <td>3 kg</td>
+      <td>High</td>
+      <td>Glass shade shatters on hard drops (-$120); emits warm light if taped to a battery.</td>
+    </tr>
+    <tr>
+      <td><strong>T1</strong></td>
+      <td><strong>Potted Monstera Plant</strong></td>
+      <td>-30m+</td>
+      <td><span class="badge badge-price">$240</span></td>
+      <td>22 kg</td>
+      <td>Medium</td>
+      <td>Ceramic pot cracks if tipped; spilled soil creates a high-friction patch on slippery floors.</td>
+    </tr>
+    <tr>
+      <td><strong>T1</strong></td>
+      <td><strong>4-Drawer Filing Cabinet</strong></td>
+      <td>-40m+</td>
+      <td><span class="badge badge-price">$350</span></td>
+      <td>65 kg</td>
+      <td>Very Low</td>
+      <td><strong>Drawers slide out if tilted!</strong> Must tape drawers shut before hoisting or center-of-mass shifts mid-shaft.</td>
+    </tr>
+    <tr>
+      <td><strong>T2</strong></td>
+      <td><strong>Executive Mahogany Desk</strong></td>
+      <td>-80m+</td>
+      <td><span class="badge badge-price">$750</span></td>
+      <td>90 kg</td>
+      <td>Low</td>
+      <td>Too wide (1.8m) for standard single doors upright—must physically rotate 90° onto its side in VR to fit through!</td>
+    </tr>
+    <tr>
+      <td><strong>T2</strong></td>
+      <td><strong>Mid-Century Velvet Sofa</strong></td>
+      <td>-100m+</td>
+      <td><span class="badge badge-price">$1,400</span></td>
+      <td>115 kg</td>
+      <td>Medium</td>
+      <td>Thick cushions dampen collision sound (-50% dB) and act as a soft crash pad at the bottom of a shaft.</td>
+    </tr>
+    <tr>
+      <td><strong>T2</strong></td>
+      <td><strong>1982 CRT TV Cart</strong></td>
+      <td>-120m+</td>
+      <td><span class="badge badge-price">$1,100</span></td>
+      <td>55 kg</td>
+      <td>High</td>
+      <td>Top-heavy rolling cart; smashing the CRT tube triggers a 110 dB implosion pop and electrical spark.</td>
+    </tr>
+    <tr>
+      <td><strong>T2</strong></td>
+      <td><strong>Antique Grandfather Clock</strong></td>
+      <td>-150m+</td>
+      <td><span class="badge badge-price">$2,200</span></td>
+      <td>95 kg</td>
+      <td>High</td>
+      <td><strong>Ticks constantly (40 dB) and chimes at 105 dB if tilted past 25°!</strong> Must open case and tape the pendulum still before hoisting!</td>
+    </tr>
+    <tr>
+      <td><strong>T3</strong></td>
+      <td><strong>Venetian Crystal Chandelier</strong></td>
+      <td>-200m+</td>
+      <td><span class="badge badge-price">$3,500</span></td>
+      <td>70 kg</td>
+      <td><span class="badge badge-danger">Extreme</span></td>
+      <td>Hangs 8m up in atrium ceilings. Must grapple up, attach a pulley rope <em>before</em> cutting its chain, and wrap in Bubble-Wrap.</td>
+    </tr>
+    <tr>
+      <td><strong>T3</strong></td>
+      <td><strong>Polybius Arcade Cabinet</strong></td>
+      <td>-240m+</td>
+      <td><span class="badge badge-price">$2,900</span></td>
+      <td>135 kg</td>
+      <td>High</td>
+      <td>Randomly plays loud 8-bit attract music (85 dB) when jostled unless Acoustic Foam Tape is placed over its speaker grille.</td>
+    </tr>
+    <tr>
+      <td><strong>T3</strong></td>
+      <td><strong>Carrara Marble Statue</strong></td>
+      <td>-300m+</td>
+      <td><span class="badge badge-price">$4,800</span></td>
+      <td>220 kg</td>
+      <td>Medium</td>
+      <td>Downward weight (2,156N) snaps Hemp Twine and Dynamic Rope—<strong>requires Braided Steel Cable or a 4x Compound Pulley!</strong></td>
+    </tr>
+    <tr>
+      <td><strong>T3</strong></td>
+      <td><strong>Gilded Baroque Mirror</strong></td>
+      <td>-320m+</td>
+      <td><span class="badge badge-price">$3,200</span></td>
+      <td>45 kg</td>
+      <td><span class="badge badge-danger">Extreme</span></td>
+      <td>Reflects flashlight beams around corners to freeze ceiling <em>Counterweights</em> while keeping your hands free.</td>
+    </tr>
+    <tr>
+      <td><strong>T4</strong></td>
+      <td><strong>"Helium-Glass" Table</strong></td>
+      <td>-400m+</td>
+      <td><span class="badge badge-price">$6,500</span></td>
+      <td><strong>-50 kg</strong></td>
+      <td>High</td>
+      <td><strong>Negative mass—falls UPWARD into the ceiling!</strong> Must tie or tape at least 60kg of ballast weight to keep it on the floor!</td>
+    </tr>
+    <tr>
+      <td><strong>T4</strong></td>
+      <td><strong>Gyroscopic Armillary</strong></td>
+      <td>-450m+</td>
+      <td><span class="badge badge-price">$7,200</span></td>
+      <td>80 kg</td>
+      <td>Medium</td>
+      <td>Spinning rings generate gyroscopic precession torque, fighting turns and swinging wildly on single-rope hoists.</td>
+    </tr>
+    <tr>
+      <td><strong>T4</strong></td>
+      <td><strong>Superconducting Server</strong></td>
+      <td>-500m+</td>
+      <td><span class="badge badge-price">$9,000</span></td>
+      <td>160 kg</td>
+      <td>Low</td>
+      <td>Pulses every 20s, magnetically yanking nearby metal props and tools toward itself unless insulated with Rubber Tape.</td>
+    </tr>
+    <tr>
+      <td><strong>★</strong></td>
+      <td><strong>Taped-Up Live Mimic</strong></td>
+      <td>Any</td>
+      <td><span class="badge badge-price">$2,500</span></td>
+      <td>95.0 kg</td>
+      <td>N/A</td>
+      <td>A sleeping Mimic wrapped in 4+ strips of Kevlar Tape. Thrashes every 12s on the hoist line—sell alive on the Cargo Scale!</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>4. Complete Entity Field Guide (5 Core Entities + 3 Apex Bosses)</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:16%">Entity Name</th>
+      <th style="width:16%">Physics Stats</th>
+      <th style="width:28%">Quirk &amp; Threat to Your Heist</th>
+      <th style="width:40%">Item &amp; Physics Counter-Strategies</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1. The Ram</strong><br><em>(Inertia Anomaly)</em></td>
+      <td><span class="stat-code">Mass: 180 kg</span><br><span class="stat-code">Force: 4,500N</span></td>
+      <td>High linear momentum, awful braking/turning. Charges players and <strong>smashes expensive furniture into $0 splinters</strong>.</td>
+      <td>• <strong>Tripwires:</strong> String rope 25cm high to flip its active ragdoll at 30 mph.<br>• <strong>Free Hoist Trick:</strong> Tie a door to your heavy loot at the bottom of a shaft—trick The Ram into charging out a window so its momentum <strong>hoists your sofa up the shaft!</strong></td>
+    </tr>
+    <tr>
+      <td><strong>2. The Seep</strong><br><em>(Gap Crawler)</em></td>
+      <td><span class="stat-code">Mass: 25 kg</span><br><span class="stat-code">Pull: 350N</span></td>
+      <td>Slithers through 15cm door gaps, vents, and <strong>inside vertical rappel tubes</strong>; chews through Hemp Twine under load.</td>
+      <td>• <strong>Duct Tape:</strong> Tape vent grates and under-door gaps shut.<br>• <strong>Ball-and-Chain:</strong> Snag it with a Grapple/Rope and tie it to any 50kg+ desk—it lacks the force (350N) to drag the anchor!<br>• <strong>Halogen Light:</strong> High beams burn it back into vents.</td>
+    </tr>
+    <tr>
+      <td><strong>3. The Mimic</strong><br><em>(Mass Impostor)</em></td>
+      <td><span class="stat-code">Mass: 95.0 kg</span><br><span class="stat-code">Bite: 1,800N</span></td>
+      <td>Disguises as high-dollar furniture. Wakes up and attacks when grabbed with bare hands or loaded into the lift.</td>
+      <td>• <strong>UV Blacklight / Scale:</strong> Glows with veins under UV; always reads 95.0kg on the Hanging Scale.<br>• <strong>Kevlar Tape Capture:</strong> Wrap 4+ strips of Kevlar Tape around it <em>while asleep</em> to weld its jaws shut and <strong>sell it for $2,500!</strong></td>
+    </tr>
+    <tr>
+      <td><strong>4. Counterweight</strong><br><em>(Shaft Predator)</em></td>
+      <td><span class="stat-code">Ceiling Fixed</span><br><span class="stat-code">Lift: 1,600N</span></td>
+      <td>Lurks at the top of rappel tubes &amp; ceiling holes; drops sticky cables to hoist players or <strong>steal loot off your rope</strong>.</td>
+      <td>• <strong>Halogen Floodlight:</strong> Shining light into its hole forces it to drop its catch.<br>• <strong>Free Winch Exploit:</strong> Let it grab your 120kg sofa at the bottom of a shaft, let it reel the sofa to the top floor for you, then blind it so it drops the sofa at the top!</td>
+    </tr>
+    <tr>
+      <td><strong>5. Tuning Fork</strong><br><em>(Impulse Hunter)</em></td>
+      <td><span class="stat-code">Mass: 110 kg</span><br><span class="stat-code">100% Blind</span></td>
+      <td>Sprints at 12 m/s to the exact 3D coordinate of any collision impulse, rope snap, clock chime, or mic noise.</td>
+      <td>• <strong>Acoustic Tape + Caster Wheels:</strong> Silent-roll heavy loot right past it.<br>• <strong>Walkie-Talkie / Timer:</strong> Trigger remote acoustic lures two rooms away.<br>• <strong>Air-Horn:</strong> Point-blank 135 dB blast stuns it for 6 seconds.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>5. Vertical Map Architecture &amp; Technical Execution Plan</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:14%">Depth Zone</th>
+      <th style="width:24%">Sector Biome</th>
+      <th style="width:28%">Vertical Rappel Tube Geometry</th>
+      <th style="width:34%">Signature Physics &amp; Extraction Mechanics</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>0m (Surface)</strong></td>
+      <td><strong>Cargo Van &amp; Drop Hatch</strong></td>
+      <td>3m × 3m breach hatch with overhead winch frame.</td>
+      <td>Cargo Scale payout zone, Shop Terminal, physical equipment wall racks.</td>
+    </tr>
+    <tr>
+      <td><strong>-20m to -100m</strong></td>
+      <td><strong>1. The Yellow Annex</strong></td>
+      <td>Straight vertical concrete tubes (15m–30m drops).</td>
+      <td>Hinged lever doors, pop-out drop-ceiling tiles (overhead rope routing), swivel chairs.</td>
+    </tr>
+    <tr>
+      <td><strong>-100m to -250m</strong></td>
+      <td><strong>2. Brutalist Archive</strong></td>
+      <td>Offset elevator shafts requiring pendulum rope swings.</td>
+      <td>Unpowered counterweight cages, rolling ladders, 8m high crystal chandeliers.</td>
+    </tr>
+    <tr>
+      <td><strong>-250m to -400m</strong></td>
+      <td><strong>3. Deep Poolrooms</strong></td>
+      <td>Ceramic drainpipes &amp; flooded vertical sumps.</td>
+      <td><strong>Archimedes Buoyancy</strong> (wood floats up shafts; marble sinks), wet tile (friction 0.02), <em>The Undertow</em> boss.</td>
+    </tr>
+    <tr>
+      <td><strong>-400m to -600m+</strong></td>
+      <td><strong>4. Tilted Hotel &amp; HVAC</strong></td>
+      <td>Rotating gimbal shafts &amp; high-wind turbine chutes.</td>
+      <td><strong>Shifting Gravity Vectors</strong> (rooms tilt 45° every 3 min) &amp; aerodynamic updrafts that float sail-rigged loot.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Apex Shaft Boss Encounters (Deep Sector Mega-Puzzles)</h3>
+<table>
+  <thead>
+    <tr>
+      <th style="width:20%">Apex Boss</th>
+      <th style="width:16%">Sector &amp; Depth</th>
+      <th style="width:28%">Mechanical Threat</th>
+      <th style="width:36%">Systemic Physics Solution</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Apex 1: The Pendulum</strong></td>
+      <td>Brutalist Archive<br><span class="stat-code">-200m Shaft</span></td>
+      <td>Colossal concrete-and-brass metronome swinging across the 6-story central hoist shaft, smashing hauled loot.</td>
+      <td>Harpoon its mass at peak swing (<em>v = 0</em>) with Braided Steel Cable and anchor to cracked load-bearing columns so its downward swing collapses the roof onto itself.</td>
+    </tr>
+    <tr>
+      <td><strong>Apex 2: The Undertow</strong></td>
+      <td>Deep Poolrooms<br><span class="stat-code">-350m Sump</span></td>
+      <td>Submerged vortex entity in flooded shafts that drags floating rafts and sinking furniture into the drain abyss.</td>
+      <td>Duct-tape 3 <strong>Inflatable CO2 Lift Bags</strong> to a heavy steel cabinet, let The Undertow snag it, and pull the trigger-rope—rocketing it upward with 3,000N of buoyancy into the ceiling grid.</td>
+    </tr>
+    <tr>
+      <td><strong>Apex 3: The Centrifuge</strong></td>
+      <td>HVAC Chutes<br><span class="stat-code">-500m Turbine</span></td>
+      <td>Cyclonic turbine entity alternating between violent suction and violent updraft blasts in the main air shaft.</td>
+      <td>Use the updraft phase with a taped plywood sail to <strong>float heavy loot up the 200ft shaft for free</strong>, or launch a caster-wheeled steel locker into its core during suction to jam the rotors.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>6. Unity 6 &amp; Quest 3 Procedural C# Architecture</h2>
+<table>
+  <thead>
+    <tr>
+      <th style="width:26%">Core C# Module</th>
+      <th style="width:24%">Primary Responsibility</th>
+      <th style="width:50%">Key Physics &amp; Performance Implementation Details</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>GameBootstrapper.cs</code></td>
+      <td>1-Click Scene &amp; Run Initialization</td>
+      <td>Generates Drop Hatch, procedural vertical tubes, modular liminal rooms, furniture loot, and player rig at runtime with zero manual Unity scene dependencies.</td>
+    </tr>
+    <tr>
+      <td><code>DualPhysicsPlayerRig.cs</code></td>
+      <td>OpenXR VR + Desktop Sim Rig</td>
+      <td>Unified physics hands supporting both OpenXR VR controllers and Mouse/Keyboard Desktop Simulator mode for rapid flat-screen + headset testing.</td>
+    </tr>
+    <tr>
+      <td><code>TetherAndRappelSystem.cs</code></td>
+      <td>Ropes, Pulleys, Grapples &amp; Rappel</td>
+      <td>Contextual anchor snapping, <code>ConfigurableJoint</code> tension/break math, 2x/4x <code>PulleyNode</code> force division, Waist Carabiner friction sliding, and tripwires.</td>
+    </tr>
+    <tr>
+      <td><code>DuctTapeAndGadgetSystem.cs</code></td>
+      <td>Welding, Wheels, Lights &amp; Tapes</td>
+      <td>Compound <code>Rigidbody</code> merging, strip tear-force stacking, Caster Wheel attachment, Bubble-Wrap dent protection, Acoustic Tape muffling, and UV/Halogen beams.</td>
+    </tr>
+    <tr>
+      <td><code>LootAppraisalManager.cs</code></td>
+      <td>Furniture $, Denting &amp; Quotas</td>
+      <td>Tracks <code>BaseDollarValue</code>, collision impulse dent penalties, Digital Scale readouts, Cargo Scale payouts, and Shop Terminal upgrades.</td>
+    </tr>
+    <tr>
+      <td><code>EntityEcosystemAI.cs</code></td>
+      <td>5 Roaming Entities + Infighting</td>
+      <td>Procedural multi-joint active-ragdoll controllers for Ram, Seep, Mimic, Counterweight, and Tuning Fork, plus room-based physics sleep culling (cap: 30 awake bodies).</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>
