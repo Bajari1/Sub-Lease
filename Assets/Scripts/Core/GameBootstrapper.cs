@@ -58,6 +58,18 @@ namespace SubLease.Core
             {
                 gameObject.AddComponent<VoiceChatAcousticBridge>();
             }
+            if (FindFirstObjectByType<SteamAndRelayTransportBridge>() == null)
+            {
+                gameObject.AddComponent<SteamAndRelayTransportBridge>();
+            }
+            if (FindFirstObjectByType<RoomPhysicsCuller>() == null)
+            {
+                gameObject.AddComponent<RoomPhysicsCuller>();
+            }
+            if (FindFirstObjectByType<StreamerSpectatorCam>() == null)
+            {
+                gameObject.AddComponent<StreamerSpectatorCam>();
+            }
             if (FindFirstObjectByType<CoOpSandboxieTestHarness>() == null)
             {
                 gameObject.AddComponent<CoOpSandboxieTestHarness>();

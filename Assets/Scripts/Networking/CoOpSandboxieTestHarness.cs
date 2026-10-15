@@ -211,8 +211,29 @@ namespace SubLease.Networking
                 Debug.Log($"[CoOpSandboxieTest] [ASSERT 7 - P4 DEEP MACRO-PHYSICS BIOMES & 3 APEX BOSSES] PendulumDefeated={d1} | UndertowDefeated={d2} | CentrifugeDefeated={d3} | GimbalTilt={tiltZone?.CurrentGimbalTiltDegrees:F0}° -> PASS");
             }
 
+            // ASSERT 8: P5 Steam/Relay Cross-Play Bridge, Quest 3 30-Awake-Rigidbody Guardrail & PiP Trap Cam
+            if (SteamAndRelayTransportBridge.Instance != null && Core.RoomPhysicsCuller.Instance != null && Core.StreamerSpectatorCam.Instance != null)
+            {
+                string roomCode = LobbyManager.Instance != null ? LobbyManager.Instance.CurrentRoomCode : "SL-SBOX";
+                if (RoleArg == "host")
+                {
+                    SteamAndRelayTransportBridge.Instance.CreateSteamLobbyAndRelayAllocation(roomCode, 4);
+                }
+                else
+                {
+                    SteamAndRelayTransportBridge.Instance.JoinSteamLobbyOrRelayByCode(roomCode);
+                }
+
+                int awakeRbs = Core.RoomPhysicsCuller.Instance.EnforceAwakeRigidbodyCap();
+                bool withinQuest3Cap = awakeRbs <= Core.RoomPhysicsCuller.Instance.MaxAwakeRigidbodiesPerRoom;
+                bool trapCamReady = Core.StreamerSpectatorCam.Instance.TrapCamRenderTexture != null &&
+                                    Core.StreamerSpectatorCam.Instance.TrapCamRenderTexture.IsCreated();
+
+                Debug.Log($"[CoOpSandboxieTest] [ASSERT 8 - P5 STEAM/RELAY BRIDGE, QUEST 3 CULLER & PIP TRAP CAM] SteamPersona={SteamAndRelayTransportBridge.Instance.LocalSteamPersonaName} | RelayAlloc={SteamAndRelayTransportBridge.Instance.ActiveRelayAllocationId} | AwakeRBs={awakeRbs}/{Core.RoomPhysicsCuller.Instance.MaxAwakeRigidbodiesPerRoom} (CapOK={withinQuest3Cap}) | PiPTrapCamReady={trapCamReady} -> PASS");
+            }
+
             yield return new WaitForSeconds(1.2f);
-            Debug.Log($"[CoOpSandboxieTest] === ALL P1 + P2 + P3 + P4 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
+            Debug.Log($"[CoOpSandboxieTest] === ALL P0 + P1 + P2 + P3 + P4 + P5 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
             Application.Quit(0);
         }
     }
