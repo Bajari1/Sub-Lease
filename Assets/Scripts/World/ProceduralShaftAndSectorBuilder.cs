@@ -62,6 +62,7 @@ namespace SubLease.World
             gantryPulley.IsOverheadPulley = true;
             gantryPulley.PulleyMechanicalAdvantage = 4;
             gantryPulley.IsRappelShaftTopAnchor = true;
+            crossBeam.AddComponent<Player.RatchetOneWayCleat>();
 
             // Pre-rig a Primary Rappel Line hanging from the overhead Winch Beam down to -18m Sector 1!
             GameObject bottomAnchor = new GameObject("ShaftBottomRappelWeight");

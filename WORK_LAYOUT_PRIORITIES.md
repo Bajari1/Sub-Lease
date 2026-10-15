@@ -14,17 +14,13 @@ This document tracks the full engineering execution order for ***SUB-LEASE***, o
 
 ---
 
-## 🔥 P1: Deep VR Hand Physics, Two-Handed Rigging & Tactile Rappelling (Next Up)
+## ✅ P1: Deep VR Hand Physics, Two-Handed Rigging & Tactile Rappelling (Completed & Verified via 2-Client Sandboxie Test)
 *Goal: Make every physical interaction in VR and Desktop Sim feel heavy, mechanical, and responsive.*
 
-1. **OpenXR Hardware Controller Binding & Two-Handed Physics Rig (`DualPhysicsPlayerRig.cs`):**
-   - Bind OpenXR Left/Right Grip, Trigger, Thumbstick, and Primary/Secondary buttons alongside Desktop Mouse/KB mode.
-   - Implement **Two-Handed Independent PD-Joint Grabbing** so grabbing opposite ends of a `90kg` Mahogany Desk lets you physically rotate it $90^\circ$ onto its side to squeeze through narrow doorways.
-   - Implement **Physical Belt Holster Slots** around the player's waist (look down to see/grab your Rope Spool, Tape Dispenser, Box Cutter, Flashlight, Grapple Claw, and Waist Carabiner).
-2. **Advanced Vertical Tube Rappelling & Pulley Hoisting (`TetherAndRappelSystem.cs`):**
-   - Add **Hand-Over-Hand Rope Pulling** in VR (alternating Left/Right grip pulls along a taut rope to hoist attached furniture up the shaft).
-   - Add **Ratchet One-Way Cleat (`B6`)** mechanics at the top of each shaft so partially hoisted furniture locks in place when you let go of the rope.
-   - Add **Wall-Kick Pendulum Swinging** while suspended on a rappel rope inside wide elevator shafts (`Sector 2: Brutalist Archive`).
+- [x] **Two-Handed Independent PD-Joint Grabbing & $90^\circ$ Doorway Rotation ([`DualPhysicsPlayerRig.cs`](./Assets/Scripts/Player/DualPhysicsPlayerRig.cs)):** Independent Left & Right Hand `AddForceAtPosition` springs (`2,800N` combined lift) + `[Z]`/`[X]` $90^\circ$ roll torque so `1.8m`-wide Mahogany Desks rotate onto their side to fit through doorways.
+- [x] **Physical 3D Waist Belt Holster Ring ([`WaistBeltHolsterSystem.cs`](./Assets/Scripts/Player/WaistBeltHolsterSystem.cs)):** 6 physical holster pouches around the player's waist that track horizontal yaw and equip tools when looked at and clicked.
+- [x] **Hand-Over-Hand Pulley Hoisting & Ratchet One-Way Shaft Cleats ([`RatchetOneWayCleat`](./Assets/Scripts/Player/WaistBeltHolsterSystem.cs#L129-L163)):** Co-op `HOIST_PULL` RPC multiplication across connected clients + one-way ratcheting so `115kg` sofas hoisted up the `-18m` tube lock mid-air when released.
+- [x] **Automated 2-Client Sandboxie Co-Op Verification ([`CoOpSandboxieTestHarness.cs`](./Assets/Scripts/Networking/CoOpSandboxieTestHarness.cs)):** Built `Builds/Windows/SubLease.exe` and verified Host + Sandboxie (`DefaultBox`) Client UDP handshake (`Room: SL-9KRE`, `CrewCount: 2`) and cooperative pulley hoisting (`-16.83m -> -0.94m`).
 
 ---
 

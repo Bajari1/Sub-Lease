@@ -288,17 +288,62 @@ namespace SubLease.Networking
 
                 if (LobbyManager.Instance != null)
                 {
-                    CrewMemberState member = new CrewMemberState
+                    CrewMemberState existing = LobbyManager.Instance.CrewRoster.Find(c => c.PlayerId == clientId);
+                    if (existing == null)
                     {
-                        PlayerId = clientId,
-                        DisplayName = name,
-                        SelectedBelt = WorkBeltRole.ShippingClerk_KevlarTapeAndWheels,
-                        IsReady = true,
-                        IsHost = false,
-                        HeadPosition = new Vector3(1.2f, 1.7f, -3.0f)
-                    };
-                    LobbyManager.Instance.CrewRoster.Add(member);
-                    SpawnOrUpdateRemoteAvatar(member);
+                        CrewMemberState member = new CrewMemberState
+                        {
+                            PlayerId = clientId,
+                            DisplayName = name,
+                            SelectedBelt = WorkBeltRole.ShippingClerk_KevlarTapeAndWheels,
+                            IsReady = true,
+                            IsHost = false,
+                            HeadPosition = new Vector3(1.2f, 1.7f, -3.0f)
+                        };
+                        LobbyManager.Instance.CrewRoster.Add(member);
+                        SpawnOrUpdateRemoteAvatar(member);
+                    }
+
+                    // Send WELCOME confirmation back to the Sandboxie Client with the Room Code and Crew Count!
+                    SendRawPacket($"WELCOME|{LobbyManager.Instance.CurrentRoomCode}|{LobbyManager.Instance.CrewRoster.Count}", sender);
+                    Debug.Log($"[SubLeaseNetworkManager] Client #{clientId} ({name}) joined from {sender}! Total Crew: {LobbyManager.Instance.CrewRoster.Count}");
+                }
+            }
+            else if (type == "WELCOME" && !IsServer && parts.Length >= 3)
+            {
+                string hostRoomCode = parts[1];
+                int totalCrew = int.TryParse(parts[2], out int tc) ? tc : 2;
+                if (LobbyManager.Instance != null)
+                {
+                    LobbyManager.Instance.CurrentRoomCode = hostRoomCode;
+                    if (LobbyManager.Instance.CrewRoster.Count < totalCrew)
+                    {
+                        CrewMemberState hostAvatar = new CrewMemberState
+                        {
+                            PlayerId = 1,
+                            DisplayName = "Liquidator-Host",
+                            SelectedBelt = WorkBeltRole.Rigger_PulleysAndPitons,
+                            IsReady = true,
+                            IsHost = true,
+                            HeadPosition = new Vector3(0f, 1.7f, -3.5f)
+                        };
+                        LobbyManager.Instance.CrewRoster.Add(hostAvatar);
+                        SpawnOrUpdateRemoteAvatar(hostAvatar);
+                    }
+                }
+                Debug.Log($"[SubLeaseNetworkManager] Received WELCOME from Host! Room: {hostRoomCode} | Crew Count: {totalCrew}");
+            }
+            else if (type == "RPC" && parts.Length >= 4)
+            {
+                string rpcName = parts[2];
+                string payload = parts[3];
+                if (rpcName == "HOIST_PULL" && float.TryParse(payload, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out float pullDist))
+                {
+                    foreach (var r in FindObjectsByType<PhysicsSystems.ActiveTetherRope>(FindObjectsSortMode.None))
+                    {
+                        r.ShortenOrHoistRope(pullDist);
+                    }
+                    Debug.Log($"[SubLeaseNetworkManager] Received Co-Op HOIST_PULL RPC ({pullDist:F2}m)!");
                 }
             }
         }

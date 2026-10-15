@@ -18,41 +18,55 @@ namespace SubLease.Player
     }
 
     /// <summary>
-    /// Unified OpenXR VR + Desktop First-Person Physics Player Controller.
-    /// Includes Waist Carabiner vertical tube rappelling, physics grabbing, Rope/Pulley rigging,
-    /// Grappling Hooks, Duct Tape welding, UV/Halogen Flashlights, and the Interactive Co-Op Lobby HUD.
+    /// Unified OpenXR VR + Desktop First-Person Physics Player Controller (Upgraded for P1).
+    /// Features:
+    /// - P1.1: Two-Handed Independent PD-Joint Grabbing (Left + Right Hand AddForceAtPosition + 90-Degree Desk Roll [Z]/[X])
+    /// - P1.2: Physical 3D Waist Belt Holster Ring (Look down & click pouch or press 1-6)
+    /// - P1.3: Hand-Over-Hand Pulley Hoisting (Alternate Left/Right pulls) + Ratchet One-Way Shaft Cleat ([K])
     /// </summary>
     [RequireComponent(typeof(CharacterController))]
     public class DualPhysicsPlayerRig : MonoBehaviour
     {
         public static DualPhysicsPlayerRig Instance { get; private set; }
 
-        [Header("Camera & Hand Anchors")]
+        [Header("Camera & Dual Physics Hand Anchors")]
         public Camera PlayerCamera;
+        public Transform LeftToolHandAnchor;
         public Transform RightToolHandAnchor;
         public PhysicalFlashlightTool EquippedFlashlight;
+        public WaistBeltHolsterSystem WaistHolster;
 
         [Header("Movement & Rappel Carabiner")]
         public float WalkSpeed = 5.5f;
         public float SprintSpeed = 8.5f;
         public float Gravity = -18.5f;
         public bool IsCarabinerLockedMidAir = false;
-        public ActiveTetherRope AttachedRappelLine;
 
         [Header("Equipped Tool State")]
         public PlayerToolSlot ActiveSlot = PlayerToolSlot.Slot1_PhysicsHandsAndHardware;
         public RopeGrade SelectedRopeGrade = RopeGrade.DynamicClimbing_2200N;
         public TapeVariant SelectedTapeVariant = TapeVariant.StandardGrey_1200N;
-        public bool ShowLobbyAndShopWindow = true;
+        public bool ShowLobbyAndShopWindow = false;
+
+        [Header("P1.1 Two-Handed Independent Physics Grab State")]
+        public Rigidbody LeftHandGrabbedRb;
+        public Vector3 LeftHandLocalGrabOffset;
+        public float LeftGrabDistance = 2.4f;
+
+        public Rigidbody RightHandGrabbedRb;
+        public Vector3 RightHandLocalGrabOffset;
+        public float RightGrabDistance = 2.4f;
+
+        public bool IsTwoHandedGrabActive => LeftHandGrabbedRb != null && LeftHandGrabbedRb == RightHandGrabbedRb;
+
+        [Header("P1.3 Hand-Over-Hand Hoist State")]
+        public bool LastPullWasLeftHand = false;
+        public int TotalHandOverHandPulls = 0;
 
         private CharacterController _cc;
         private Vector3 _velocity;
         private float _pitch;
         private string _joinCodeInput = "SL-";
-
-        // Physics Grab State
-        private Rigidbody _grabbedRb;
-        private float _grabDistance = 2.6f;
 
         // Rope & Tape Multi-Point Selection
         private Transform _pendingRopeAnchorA;
@@ -82,12 +96,26 @@ namespace SubLease.Player
                 camObj.AddComponent<AudioListener>();
             }
 
+            if (LeftToolHandAnchor == null)
+            {
+                GameObject lHandObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                lHandObj.name = "LeftPhysicsHandAnchor";
+                Destroy(lHandObj.GetComponent<Collider>());
+                lHandObj.transform.SetParent(PlayerCamera.transform, false);
+                lHandObj.transform.localPosition = new Vector3(-0.32f, -0.24f, 0.55f);
+                lHandObj.transform.localScale = Vector3.one * 0.11f;
+                LeftToolHandAnchor = lHandObj.transform;
+            }
+
             if (RightToolHandAnchor == null)
             {
-                GameObject handObj = new GameObject("RightPhysicsHandAnchor");
-                handObj.transform.SetParent(PlayerCamera.transform, false);
-                handObj.transform.localPosition = new Vector3(0.32f, -0.24f, 0.55f);
-                RightToolHandAnchor = handObj.transform;
+                GameObject rHandObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                rHandObj.name = "RightPhysicsHandAnchor";
+                Destroy(rHandObj.GetComponent<Collider>());
+                rHandObj.transform.SetParent(PlayerCamera.transform, false);
+                rHandObj.transform.localPosition = new Vector3(0.32f, -0.24f, 0.55f);
+                rHandObj.transform.localScale = Vector3.one * 0.11f;
+                RightToolHandAnchor = rHandObj.transform;
             }
 
             if (EquippedFlashlight == null)
@@ -96,6 +124,12 @@ namespace SubLease.Player
                 lightObj.transform.SetParent(PlayerCamera.transform, false);
                 lightObj.transform.localPosition = new Vector3(-0.26f, -0.18f, 0.35f);
                 EquippedFlashlight = lightObj.AddComponent<PhysicalFlashlightTool>();
+            }
+
+            if (WaistHolster == null)
+            {
+                WaistHolster = gameObject.AddComponent<WaistBeltHolsterSystem>();
+                WaistHolster.HeadCameraTransform = PlayerCamera.transform;
             }
         }
 
@@ -109,6 +143,72 @@ namespace SubLease.Player
                 HandlePrimaryToolActions();
             }
             UpdateHoverAppraisalAndFlashlightEffects();
+            if (WaistHolster != null)
+            {
+                WaistHolster.HighlightActiveSlot(ActiveSlot);
+            }
+        }
+
+        private void FixedUpdate()
+        {
+            ApplyTwoHandedPDGrabForces();
+        }
+
+        /// <summary>
+        /// P1.1: Applies independent Left & Right hand PD-Controller forces at exact grab offsets on the Rigidbody.
+        /// Grabbing a heavy desk with BOTH hands doubles lift force (2,800N) and enables 90-degree doorway rotation!
+        /// </summary>
+        private void ApplyTwoHandedPDGrabForces()
+        {
+            if (PlayerCamera == null) return;
+
+            if (LeftHandGrabbedRb != null)
+            {
+                Vector3 worldGrabPt = LeftHandGrabbedRb.transform.TransformPoint(LeftHandLocalGrabOffset);
+                Vector3 targetPt = PlayerCamera.transform.position
+                                   + PlayerCamera.transform.forward * LeftGrabDistance
+                                   - PlayerCamera.transform.right * 0.35f;
+                ApplySingleHandPDForce(LeftHandGrabbedRb, worldGrabPt, targetPt, 1400f);
+            }
+
+            if (RightHandGrabbedRb != null)
+            {
+                Vector3 worldGrabPt = RightHandGrabbedRb.transform.TransformPoint(RightHandLocalGrabOffset);
+                Vector3 targetPt = PlayerCamera.transform.position
+                                   + PlayerCamera.transform.forward * RightGrabDistance
+                                   + PlayerCamera.transform.right * 0.35f;
+                ApplySingleHandPDForce(RightHandGrabbedRb, worldGrabPt, targetPt, 1400f);
+            }
+        }
+
+        private void ApplySingleHandPDForce(Rigidbody rb, Vector3 worldGrabPt, Vector3 targetPt, float maxHandForceN)
+        {
+            Vector3 posError = targetPt - worldGrabPt;
+            Vector3 pointVel = rb.GetPointVelocity(worldGrabPt);
+            Vector3 desiredVel = posError * 11f;
+            Vector3 force = Vector3.ClampMagnitude((desiredVel - pointVel) * Mathf.Clamp(rb.mass, 8f, 120f) * 6.5f, maxHandForceN);
+            rb.AddForceAtPosition(force, worldGrabPt, ForceMode.Force);
+        }
+
+        /// <summary>
+        /// Programmatic entry point for P1 Two-Handed Grab & 90-Degree Desk Rotation (used by Player & Automated Co-Op Test).
+        /// </summary>
+        public void PerformTwoHandedGrabAndRotate90(Rigidbody targetDeskRb)
+        {
+            if (targetDeskRb == null) return;
+            LeftHandGrabbedRb = targetDeskRb;
+            RightHandGrabbedRb = targetDeskRb;
+            LeftHandLocalGrabOffset = new Vector3(-0.45f, 0f, 0f);
+            RightHandLocalGrabOffset = new Vector3(0.45f, 0f, 0f);
+
+            NetworkedPhysicsObject netObj = targetDeskRb.GetComponent<NetworkedPhysicsObject>();
+            if (netObj != null)
+            {
+                netObj.RegisterGrab(SubLeaseNetworkManager.Instance != null ? SubLeaseNetworkManager.Instance.LocalPlayerId : 1);
+            }
+
+            // Rotate 90 degrees onto its side so a 1.8m Mahogany Desk fits through narrow doorways!
+            targetDeskRb.MoveRotation(targetDeskRb.rotation * Quaternion.Euler(0f, 0f, 90f));
         }
 
         private void HandleCursorAndLobbyToggle()
@@ -150,7 +250,6 @@ namespace SubLease.Player
 
             if (IsCarabinerLockedMidAir)
             {
-                // Waist Carabiner Rappelling Mode: [Space] Ascend rope, [C] Brake-slide down tube!
                 float verticalClimb = 0f;
                 if (Input.GetKey(KeyCode.Space)) verticalClimb = 5.5f;
                 else if (Input.GetKey(KeyCode.C) || Input.GetKey(KeyCode.LeftControl)) verticalClimb = -6.5f;
@@ -182,10 +281,16 @@ namespace SubLease.Player
             if (Input.GetKeyDown(KeyCode.Alpha5)) ActiveSlot = PlayerToolSlot.Slot5_FlashlightAndUVScanner;
             if (Input.GetKeyDown(KeyCode.Alpha6)) ActiveSlot = PlayerToolSlot.Slot6_DigitalScaleAndAudio;
 
-            // [F] Cycles Flashlight Mode anytime (Work Beam -> 10,000lm Halogen Flood -> 365nm UV Blacklight!)
+            // [F] Cycles Flashlight Mode
             if (Input.GetKeyDown(KeyCode.F) && EquippedFlashlight != null)
             {
                 EquippedFlashlight.CycleMode();
+            }
+
+            // [K] Toggles Ratchet One-Way Shaft Cleat (P1.3)
+            if (Input.GetKeyDown(KeyCode.K) && RatchetOneWayCleat.Instance != null)
+            {
+                RatchetOneWayCleat.Instance.IsRatchetEngaged = !RatchetOneWayCleat.Instance.IsRatchetEngaged;
             }
 
             // [T] Cycles Rope Grade or Duct Tape Variant
@@ -207,61 +312,83 @@ namespace SubLease.Player
                 CargoScaleExtractionZone.Instance.CashOutScaleHaul();
             }
 
-            // [H] Blast 135 dB Compressed Air-Horn (stuns The Tuning Fork for 6 seconds!)
+            // [H] Blast 135 dB Compressed Air-Horn
             if (Input.GetKeyDown(KeyCode.H) && AcousticAndPhysicsBus.Instance != null)
             {
                 AcousticAndPhysicsBus.Instance.EmitSound(transform.position, 135f, SoundSourceType.GadgetTimerOrHorn, gameObject);
-                Debug.Log("[AirHorn] HONK! 135 dB acoustic blast emitted!");
             }
         }
 
         private void HandlePrimaryToolActions()
         {
+            if (PlayerCamera == null) return;
             Ray ray = new Ray(PlayerCamera.transform.position, PlayerCamera.transform.forward);
 
-            // Update Physics Grabbed Object
-            if (_grabbedRb != null)
+            // P1.2: Check if player is looking down at a Physical Waist Belt Holster Pouch and clicks it!
+            if (Input.GetMouseButtonDown(0) && Physics.Raycast(ray, out RaycastHit beltHit, 2.0f))
             {
-                _grabDistance = Mathf.Clamp(_grabDistance + Input.mouseScrollDelta.y * 0.4f, 1.2f, 6.0f);
-                Vector3 targetPoint = PlayerCamera.transform.position + PlayerCamera.transform.forward * _grabDistance;
-                Vector3 delta = targetPoint - _grabbedRb.position;
-
-                // Apply PD spring force scaled by player strength (or Co-Op crew assistance!)
-                float maxForce = 1400f;
-                Vector3 desiredVel = delta * 10f;
-                Vector3 force = Vector3.ClampMagnitude((desiredVel - _grabbedRb.linearVelocity) * _grabbedRb.mass * 8f, maxForce);
-                _grabbedRb.AddForce(force, ForceMode.Force);
-
-                if (Input.GetMouseButtonUp(0))
+                HolsterPouchInteractable pouch = beltHit.collider.GetComponent<HolsterPouchInteractable>();
+                if (pouch != null)
                 {
-                    NetworkedPhysicsObject netObj = _grabbedRb.GetComponent<NetworkedPhysicsObject>();
-                    if (netObj != null) netObj.UnregisterGrab(1);
-                    _grabbedRb = null;
+                    ActiveSlot = pouch.AssignedSlot;
+                    return;
                 }
-                return;
+            }
+
+            // Adjust grab distance & 90-degree two-handed rotation ([Z]/[X])
+            if (LeftHandGrabbedRb != null || RightHandGrabbedRb != null)
+            {
+                float scroll = Input.mouseScrollDelta.y * 0.4f;
+                LeftGrabDistance = Mathf.Clamp(LeftGrabDistance + scroll, 1.2f, 6.0f);
+                RightGrabDistance = Mathf.Clamp(RightGrabDistance + scroll, 1.2f, 6.0f);
+
+                // P1.1: When holding with BOTH hands, press [Z] or [X] to physically roll/rotate wide desks 90 degrees!
+                if (IsTwoHandedGrabActive)
+                {
+                    if (Input.GetKeyDown(KeyCode.Z))
+                    {
+                        LeftHandGrabbedRb.MoveRotation(LeftHandGrabbedRb.rotation * Quaternion.Euler(0f, 0f, 90f));
+                    }
+                    else if (Input.GetKeyDown(KeyCode.X))
+                    {
+                        LeftHandGrabbedRb.MoveRotation(LeftHandGrabbedRb.rotation * Quaternion.Euler(0f, 90f, 0f));
+                    }
+                }
+            }
+
+            if (Input.GetMouseButtonUp(0) && LeftHandGrabbedRb != null)
+            {
+                NetworkedPhysicsObject netObj = LeftHandGrabbedRb.GetComponent<NetworkedPhysicsObject>();
+                if (netObj != null && RightHandGrabbedRb != LeftHandGrabbedRb) netObj.UnregisterGrab(1);
+                LeftHandGrabbedRb = null;
+            }
+            if (Input.GetMouseButtonUp(1) && RightHandGrabbedRb != null)
+            {
+                NetworkedPhysicsObject netObj = RightHandGrabbedRb.GetComponent<NetworkedPhysicsObject>();
+                if (netObj != null && LeftHandGrabbedRb != RightHandGrabbedRb) netObj.UnregisterGrab(1);
+                RightHandGrabbedRb = null;
             }
 
             switch (ActiveSlot)
             {
                 case PlayerToolSlot.Slot1_PhysicsHandsAndHardware:
-                    if (Input.GetMouseButtonDown(0) && Physics.Raycast(ray, out RaycastHit grabHit, 4.5f))
+                    // Left-Click = Left Hand Grab | Right-Click = Right Hand Grab (Both held = Two-Handed Heavy Lift!)
+                    if (Input.GetMouseButtonDown(0) && Physics.Raycast(ray, out RaycastHit lHit, 4.8f) && lHit.rigidbody != null && !lHit.rigidbody.isKinematic)
                     {
-                        if (grabHit.rigidbody != null && !grabHit.rigidbody.isKinematic)
-                        {
-                            _grabbedRb = grabHit.rigidbody;
-                            _grabDistance = grabHit.distance;
-                            NetworkedPhysicsObject netObj = _grabbedRb.GetComponent<NetworkedPhysicsObject>();
-                            if (netObj != null) netObj.RegisterGrab(1);
-
-                            // If player grabs an untaped sleeping Mimic with bare hands, it wakes up!
-                            LootFurnitureItem loot = _grabbedRb.GetComponent<LootFurnitureItem>();
-                            if (loot != null && loot.IsDisguisedMimic && !loot.IsMimicSafelyTaped())
-                            {
-                                loot.TriggerMimicWakeUp();
-                            }
-                        }
+                        LeftHandGrabbedRb = lHit.rigidbody;
+                        LeftGrabDistance = lHit.distance;
+                        LeftHandLocalGrabOffset = lHit.rigidbody.transform.InverseTransformPoint(lHit.point);
+                        RegisterGrabAndCheckMimic(LeftHandGrabbedRb);
                     }
-                    // [G] Attach 4x Swivel Caster Wheels to aimed furniture!
+                    if (Input.GetMouseButtonDown(1) && Physics.Raycast(ray, out RaycastHit rHit, 4.8f) && rHit.rigidbody != null && !rHit.rigidbody.isKinematic)
+                    {
+                        RightHandGrabbedRb = rHit.rigidbody;
+                        RightGrabDistance = rHit.distance;
+                        RightHandLocalGrabOffset = rHit.rigidbody.transform.InverseTransformPoint(rHit.point);
+                        RegisterGrabAndCheckMimic(RightHandGrabbedRb);
+                    }
+
+                    // [G] Attach 4x Swivel Caster Wheels
                     if (Input.GetKeyDown(KeyCode.G) && Physics.Raycast(ray, out RaycastHit wheelHit, 4.5f))
                     {
                         NetworkedPhysicsObject net = wheelHit.collider.GetComponentInParent<NetworkedPhysicsObject>();
@@ -272,7 +399,7 @@ namespace SubLease.Player
                             if (loot != null) loot.UpdatePriceTagText();
                         }
                     }
-                    // [B] Attach Inflatable CO2 Lift Bag (+95kg upward lift up the shaft!)
+                    // [B] Attach Inflatable CO2 Lift Bag (+95kg upward lift!)
                     if (Input.GetKeyDown(KeyCode.B) && Physics.Raycast(ray, out RaycastHit bagHit, 4.5f) && bagHit.rigidbody != null)
                     {
                         DuctTapeAndGadgetFactory.AttachInflatableLiftBag(bagHit.rigidbody);
@@ -302,15 +429,14 @@ namespace SubLease.Player
                             _pendingPulleyMidpoint = null;
                         }
                     }
-                    // Scroll wheel hoists/shortens the nearest active rope!
-                    if (Mathf.Abs(Input.mouseScrollDelta.y) > 0.01f)
+
+                    // P1.3: Hand-Over-Hand Pulley Hoisting (Scroll Wheel or alternating [Q]/[E] hand pulls)
+                    if (Mathf.Abs(Input.mouseScrollDelta.y) > 0.01f || Input.GetKeyDown(KeyCode.Q))
                     {
-                        foreach (var r in FindObjectsByType<ActiveTetherRope>(FindObjectsSortMode.None))
-                        {
-                            r.ShortenOrHoistRope(Input.mouseScrollDelta.y * 0.45f);
-                        }
+                        PerformHandOverHandPulleyPull(0.65f);
                     }
-                    // Right-click Box Cutter: Instantly sever aimed or nearest rope!
+
+                    // Right-click Box Cutter: Instantly sever nearest rope
                     if (Input.GetMouseButtonDown(1))
                     {
                         ActiveTetherRope[] ropes = FindObjectsByType<ActiveTetherRope>(FindObjectsSortMode.None);
@@ -351,6 +477,38 @@ namespace SubLease.Player
                         EquippedFlashlight.CycleMode();
                     }
                     break;
+            }
+        }
+
+        public void PerformHandOverHandPulleyPull(float pullMeters)
+        {
+            LastPullWasLeftHand = !LastPullWasLeftHand;
+            TotalHandOverHandPulls++;
+
+            // Multiply pull distance if Co-Op Crewmates are connected!
+            int crewCount = (LobbyManager.Instance != null) ? Mathf.Max(1, LobbyManager.Instance.CrewRoster.Count) : 1;
+            float effectivePull = pullMeters * (1f + (crewCount - 1) * 0.5f);
+
+            foreach (var r in FindObjectsByType<ActiveTetherRope>(FindObjectsSortMode.None))
+            {
+                r.ShortenOrHoistRope(effectivePull);
+            }
+
+            if (SubLeaseNetworkManager.Instance != null && SubLeaseNetworkManager.Instance.IsConnected)
+            {
+                SubLeaseNetworkManager.Instance.BroadcastRpc("HOIST_PULL", $"{effectivePull:F2}");
+            }
+        }
+
+        private void RegisterGrabAndCheckMimic(Rigidbody rb)
+        {
+            NetworkedPhysicsObject netObj = rb.GetComponent<NetworkedPhysicsObject>();
+            if (netObj != null) netObj.RegisterGrab(1);
+
+            LootFurnitureItem loot = rb.GetComponent<LootFurnitureItem>();
+            if (loot != null && loot.IsDisguisedMimic && !loot.IsMimicSafelyTaped())
+            {
+                loot.TriggerMimicWakeUp();
             }
         }
 
@@ -417,18 +575,18 @@ namespace SubLease.Player
 
         private void OnGUI()
         {
-            // Top-Left Persistent Telemetry HUD
-            GUI.Box(new Rect(14, 14, 480, 145), "");
-            GUILayout.BeginArea(new Rect(24, 20, 460, 135));
+            GUI.Box(new Rect(14, 14, 540, 165), "");
+            GUILayout.BeginArea(new Rect(24, 20, 520, 155));
             if (LobbyManager.Instance != null)
             {
-                GUILayout.Label($"<b>SUB-LEASE // ROOM CODE: {LobbyManager.Instance.CurrentRoomCode}</b>  |  Crew: {LobbyManager.Instance.CrewRoster.Count}/4  |  Cash: <b>${LobbyManager.Instance.BankedCash}</b> / Quota: ${LobbyManager.Instance.CurrentQuotaTarget}");
+                GUILayout.Label($"<b>SUB-LEASE (P1) // ROOM CODE: {LobbyManager.Instance.CurrentRoomCode}</b>  |  Crew: {LobbyManager.Instance.CrewRoster.Count}/4  |  Cash: <b>${LobbyManager.Instance.BankedCash}</b> / Quota: ${LobbyManager.Instance.CurrentQuotaTarget}");
             }
-            GUILayout.Label($"<b>Active Tool [1-6]:</b> {ActiveSlot}   |   <b>[T] Variant:</b> {(ActiveSlot == PlayerToolSlot.Slot4_DuctTapeDispenser ? SelectedTapeVariant.ToString() : SelectedRopeGrade.ToString())}");
-            GUILayout.Label($"<b>Flashlight [F]:</b> {(EquippedFlashlight != null ? EquippedFlashlight.CurrentMode.ToString() : "Off")}   |   <b>Waist Rappel Lock [R]:</b> {(IsCarabinerLockedMidAir ? "LOCKED MID-AIR (Space/C)" : "Free Move")}");
+            GUILayout.Label($"<b>Tool [1-6 / Waist Belt]:</b> {ActiveSlot}   |   <b>Two-Hand Grab (L+R Click):</b> {(IsTwoHandedGrabActive ? "ACTIVE (2,800N | [Z]/[X] 90° Desk Roll)" : "Single/Idle")}");
+            bool ratchetOn = RatchetOneWayCleat.Instance != null && RatchetOneWayCleat.Instance.IsRatchetEngaged;
+            GUILayout.Label($"<b>Flashlight [F]:</b> {(EquippedFlashlight != null ? EquippedFlashlight.CurrentMode.ToString() : "Off")}   |   <b>Waist Rappel [R]:</b> {(IsCarabinerLockedMidAir ? "LOCKED" : "Free")}   |   <b>Ratchet Cleat [K]:</b> {(ratchetOn ? "LOCKED ONE-WAY" : "FREE")}");
             if (AcousticAndPhysicsBus.Instance != null)
             {
-                GUILayout.Label($"<b>Acoustic Impulse Meter:</b> {AcousticAndPhysicsBus.Instance.LastPeakDecibels:F0} dB   |   <b>[G]</b> Add Wheels  <b>[B]</b> Lift Bag  <b>[H]</b> Air-Horn  <b>[Tab]</b> Co-Op Lobby");
+                GUILayout.Label($"<b>Acoustic Meter:</b> {AcousticAndPhysicsBus.Instance.LastPeakDecibels:F0} dB   |   <b>[G]</b> Wheels  <b>[B]</b> Lift Bag  <b>[H]</b> Air-Horn  <b>[Tab]</b> Co-Op Lobby");
             }
             if (!string.IsNullOrEmpty(_hoverScanReadout))
             {
@@ -438,14 +596,12 @@ namespace SubLease.Player
             }
             GUILayout.EndArea();
 
-            // Center Crosshair
             if (!ShowLobbyAndShopWindow)
             {
                 GUI.Label(new Rect(Screen.width * 0.5f - 6f, Screen.height * 0.5f - 10f, 24f, 24f), "+");
                 return;
             }
 
-            // Interactive Co-Op Lobby & Drop Hatch Terminal Window ([Tab])
             Rect winRect = new Rect(Screen.width * 0.5f - 290f, Screen.height * 0.5f - 220f, 580f, 440f);
             GUI.Box(winRect, "=== SUB-LEASE: CO-OP LOBBY & DROP HATCH TERMINAL (0m) ===");
             GUILayout.BeginArea(new Rect(winRect.x + 18f, winRect.y + 32f, winRect.width - 36f, winRect.height - 44f));

@@ -58,6 +58,10 @@ namespace SubLease.Core
             {
                 gameObject.AddComponent<VoiceChatAcousticBridge>();
             }
+            if (FindFirstObjectByType<CoOpSandboxieTestHarness>() == null)
+            {
+                gameObject.AddComponent<CoOpSandboxieTestHarness>();
+            }
         }
 
         private void SpawnPlayerRigAtDropHatch()
