@@ -130,9 +130,14 @@ namespace SubLease.Gameplay
                 float rawLossPct = (impulse - damageThreshold) * 0.45f * FragilityMultiplier * protection;
                 if (rawLossPct >= 1f)
                 {
+                    int prevValue = CurrentDollarValue;
                     ConditionPercent = Mathf.Max(10f, ConditionPercent - rawLossPct);
                     CurrentDollarValue = Mathf.RoundToInt(BaseDollarValue * (ConditionPercent / 100f));
                     UpdatePriceTagText();
+                    if (World.LiminalVisualsAndDestructionVfx.Instance != null)
+                    {
+                        World.LiminalVisualsAndDestructionVfx.Instance.TriggerImpactFractureVfx(this, transform.position, prevValue - CurrentDollarValue);
+                    }
                 }
             }
         }

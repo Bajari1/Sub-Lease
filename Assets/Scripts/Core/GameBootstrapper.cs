@@ -70,6 +70,26 @@ namespace SubLease.Core
             {
                 gameObject.AddComponent<StreamerSpectatorCam>();
             }
+            if (FindFirstObjectByType<Gameplay.SeededShiftAndExtractionSystem>() == null)
+            {
+                gameObject.AddComponent<Gameplay.SeededShiftAndExtractionSystem>();
+            }
+            if (FindFirstObjectByType<LiminalVisualsAndDestructionVfx>() == null)
+            {
+                gameObject.AddComponent<LiminalVisualsAndDestructionVfx>();
+            }
+            if (FindFirstObjectByType<ProceduralAudioSynthesizer>() == null)
+            {
+                gameObject.AddComponent<ProceduralAudioSynthesizer>();
+            }
+            if (FindFirstObjectByType<OpenXRAndWristwatchSystem>() == null)
+            {
+                gameObject.AddComponent<OpenXRAndWristwatchSystem>();
+            }
+            if (FindFirstObjectByType<CareerProgressionManager>() == null)
+            {
+                gameObject.AddComponent<CareerProgressionManager>();
+            }
             if (FindFirstObjectByType<CoOpSandboxieTestHarness>() == null)
             {
                 gameObject.AddComponent<CoOpSandboxieTestHarness>();

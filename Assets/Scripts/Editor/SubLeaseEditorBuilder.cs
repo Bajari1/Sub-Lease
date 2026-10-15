@@ -62,6 +62,33 @@ namespace SubLease.EditorTools
             BuildReport report = BuildPipeline.BuildPlayer(opts);
             Debug.Log($"[SubLeaseEditorBuilder] Standalone Build Result: {report.summary.result} | Output: {exePath}");
         }
+
+        [MenuItem("SubLease/Build Meta Quest 3 Standalone APK (ARM64)")]
+        public static void BuildQuest3StandaloneApk()
+        {
+            BuildAndSaveDefaultScene();
+
+            string buildDir = "Builds/Quest3";
+            if (!Directory.Exists(buildDir))
+            {
+                Directory.CreateDirectory(buildDir);
+            }
+
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+            PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel29;
+
+            string apkPath = Path.Combine(buildDir, "SubLease_Quest3.apk");
+            BuildPlayerOptions opts = new BuildPlayerOptions
+            {
+                scenes = new[] { "Assets/Scenes/SubLease_DropHatch_Main.unity" },
+                locationPathName = apkPath,
+                target = BuildTarget.Android,
+                options = BuildOptions.None
+            };
+
+            BuildReport report = BuildPipeline.BuildPlayer(opts);
+            Debug.Log($"[SubLeaseEditorBuilder] Meta Quest 3 APK Build Result: {report.summary.result} | Output: {apkPath}");
+        }
     }
 }
 #endif

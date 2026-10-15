@@ -109,6 +109,11 @@ namespace SubLease.Networking
             }
         }
 
+        public void BroadcastShiftAdvanceRpc(uint seed, int day, int bankedCash, int quotaTarget)
+        {
+            BroadcastRpc("SHIFT_ADVANCE", $"{seed},{day},{bankedCash},{quotaTarget}");
+        }
+
         /// <summary>
         /// Spawns or updates a 3D physical Co-Op Crewmate Avatar (Head visor, Work Belt, and Dual Physics Hands).
         /// </summary>
@@ -349,6 +354,16 @@ namespace SubLease.Networking
                 {
                     Gameplay.DiegeticShopChuteSystem.Instance.PurchaseOrDispenseGadget((Gameplay.ShopGadgetCatalogId)gadgetId, false);
                     Debug.Log($"[SubLeaseNetworkManager] Received Co-Op SHOP_DISPENSE RPC ({(Gameplay.ShopGadgetCatalogId)gadgetId})!");
+                }
+                else if (rpcName == "SHIFT_ADVANCE" && Gameplay.SeededShiftAndExtractionSystem.Instance != null)
+                {
+                    string[] sp = payload.Split(',');
+                    if (sp.Length >= 4 && uint.TryParse(sp[0], out uint seed) && int.TryParse(sp[1], out int day) &&
+                        int.TryParse(sp[2], out int cash) && int.TryParse(sp[3], out int quota))
+                    {
+                        Gameplay.SeededShiftAndExtractionSystem.Instance.SyncShiftStateFromNetwork(seed, day, cash, quota);
+                        Debug.Log($"[SubLeaseNetworkManager] Received Co-Op SHIFT_ADVANCE RPC (Seed=#{seed}, Day={day}, Cash=${cash}, Quota=${quota})!");
+                    }
                 }
             }
         }
