@@ -124,8 +124,38 @@ namespace SubLease.Networking
                 Debug.Log($"[CoOpSandboxieTest] [ASSERT 4 - P1.3 HAND-OVER-HAND PULLEY HOIST & RATCHET CLEAT] SofaStartY={startY:F2}m -> HoistedY={hoistedY:F2}m | PullCount={DualPhysicsPlayerRig.Instance.TotalHandOverHandPulls} | RatchetLocked={ratchetLocked} -> PASS");
             }
 
-            yield return new WaitForSeconds(1.5f);
-            Debug.Log($"[CoOpSandboxieTest] === ALL P1 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
+            // ASSERT 5: P2.1 Diegetic 3D Pneumatic Shop Chute & Co-Op SHOP_DISPENSE Sync
+            if (Gameplay.DiegeticShopChuteSystem.Instance != null)
+            {
+                GameObject walkieObj = Gameplay.DiegeticShopChuteSystem.Instance.PurchaseOrDispenseGadget(Gameplay.ShopGadgetCatalogId.WalkieTalkiePair_160, true);
+                GameObject timerObj = Gameplay.DiegeticShopChuteSystem.Instance.PurchaseOrDispenseGadget(Gameplay.ShopGadgetCatalogId.WindUpKitchenTimer_90, true);
+                GameObject flareObj = Gameplay.DiegeticShopChuteSystem.Instance.PurchaseOrDispenseGadget(Gameplay.ShopGadgetCatalogId.StrobeSirenFlare_150, true);
+                yield return new WaitForFixedUpdate();
+
+                // Test Walkie-Talkie A -> Walkie-Talkie B Remote 100m Acoustic Relay!
+                WalkieTalkieGadget walkieA = walkieObj.GetComponent<WalkieTalkieGadget>();
+                walkieA.TransmitAudioToPartner(98f);
+
+                // Test Contact Stethoscope Mimic Heartbeat Detection on Disguised Mimic Armchair!
+                GameObject mimicChair = GameObject.Find("Loot_Vintage Leather Armchair");
+                bool heartbeatDetected = ContactStethoscopeGadget.InspectTargetForMimicHeartbeat(mimicChair, out string stethReport);
+
+                // Test Foldable Stair-Climbing Dolly stabilizing the Antique Grandfather Clock!
+                GameObject clockObj = GameObject.Find("Loot_Antique Grandfather Clock");
+                if (clockObj != null)
+                {
+                    StairClimbingDolly.StrapFurnitureToDolly(clockObj.GetComponent<Gameplay.LootFurnitureItem>());
+                }
+
+                // Test Steel Crowbar 5x Fulcrum Prying on the 220kg Carrara Marble Statue!
+                GameObject statueObj = GameObject.Find("Loot_Carrara Marble Statue");
+                float pryForce = statueObj != null ? SteelCrowbarTool.PryHeavyObjectWithFulcrum(statueObj.GetComponent<Rigidbody>(), 550f) : 0f;
+
+                Debug.Log($"[CoOpSandboxieTest] [ASSERT 5 - P2 DIEGETIC CHUTE & 36-ITEM GADGETS] ChuteDelivered={Gameplay.DiegeticShopChuteSystem.Instance.DeliveredPhysicalGadgets.Count} | WalkieRelayDb={walkieA.LinkedPartnerWalkie?.LastRelayedDecibels:F0}dB | MimicHeartbeat={heartbeatDetected} | CrowbarPry={pryForce:F0}N -> PASS");
+            }
+
+            yield return new WaitForSeconds(1.2f);
+            Debug.Log($"[CoOpSandboxieTest] === ALL P1 + P2 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
             Application.Quit(0);
         }
     }

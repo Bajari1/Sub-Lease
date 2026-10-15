@@ -345,6 +345,11 @@ namespace SubLease.Networking
                     }
                     Debug.Log($"[SubLeaseNetworkManager] Received Co-Op HOIST_PULL RPC ({pullDist:F2}m)!");
                 }
+                else if (rpcName == "SHOP_DISPENSE" && int.TryParse(payload, out int gadgetId) && Gameplay.DiegeticShopChuteSystem.Instance != null)
+                {
+                    Gameplay.DiegeticShopChuteSystem.Instance.PurchaseOrDispenseGadget((Gameplay.ShopGadgetCatalogId)gadgetId, false);
+                    Debug.Log($"[SubLeaseNetworkManager] Received Co-Op SHOP_DISPENSE RPC ({(Gameplay.ShopGadgetCatalogId)gadgetId})!");
+                }
             }
         }
 

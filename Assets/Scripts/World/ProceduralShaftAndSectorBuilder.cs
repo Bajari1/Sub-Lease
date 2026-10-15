@@ -80,6 +80,9 @@ namespace SubLease.World
             // Build Cargo Scale Extraction Platform at (3.8m, 0.1m, 3.2m)
             BuildCargoScalePlatform(hub.transform, new Vector3(3.8f, 0.08f, 3.2f));
 
+            // P2.1: Build 3D Diegetic CRT Shop Kiosk & Overhead Pneumatic Delivery Chute at (-3.8m, 0m, 3.2m)
+            DiegeticShopChuteSystem.BuildDiegeticShopAndChuteInHub(hub.transform);
+
             // Hub Lighting
             CreatePointLight(hub.transform, new Vector3(0f, 4.8f, 0f), new Color(1.0f, 0.92f, 0.78f), 2.8f, 18f);
         }
