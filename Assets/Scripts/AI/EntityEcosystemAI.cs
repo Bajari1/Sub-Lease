@@ -37,6 +37,10 @@ namespace SubLease.AI
         private void Awake()
         {
             _rb = GetComponent<Rigidbody>();
+            if (GetComponent<ProceduralMultiJointEntityRig>() == null)
+            {
+                gameObject.AddComponent<ProceduralMultiJointEntityRig>();
+            }
         }
 
         private void Start()

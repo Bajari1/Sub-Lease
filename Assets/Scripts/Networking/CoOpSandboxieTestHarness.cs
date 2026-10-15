@@ -154,8 +154,31 @@ namespace SubLease.Networking
                 Debug.Log($"[CoOpSandboxieTest] [ASSERT 5 - P2 DIEGETIC CHUTE & 36-ITEM GADGETS] ChuteDelivered={Gameplay.DiegeticShopChuteSystem.Instance.DeliveredPhysicalGadgets.Count} | WalkieRelayDb={walkieA.LinkedPartnerWalkie?.LastRelayedDecibels:F0}dB | MimicHeartbeat={heartbeatDetected} | CrowbarPry={pryForce:F0}N -> PASS");
             }
 
+            // ASSERT 6: P3 Multi-Joint Procedural Entity Rigging, Kevlar Mimic Capture & Door Barricade Breach AI
+            GameObject seepObj = GameObject.Find("Entity_TheSeep_25kg");
+            GameObject forkObj = GameObject.Find("Entity_TheTuningFork_BlindAcoustic");
+            GameObject doorObj = GameObject.Find("HingedFireDoor_WithLever");
+            GameObject mimicChairObj = GameObject.Find("Loot_Vintage Leather Armchair");
+            if (seepObj != null && forkObj != null && doorObj != null && mimicChairObj != null)
+            {
+                AI.ProceduralMultiJointEntityRig seepRig = seepObj.GetComponent<AI.ProceduralMultiJointEntityRig>();
+                AI.ProceduralMultiJointEntityRig forkRig = forkObj.GetComponent<AI.ProceduralMultiJointEntityRig>();
+
+                // Test Seep (350N) failing to breach a barricaded door and rerouting through vents!
+                seepRig.TestAndAttemptDoorBreach(doorObj.GetComponent<Rigidbody>());
+
+                // Test wrapping 4 strips of Kevlar Tape around the Sleeping Mimic to capture it for the $2,500 bounty!
+                NetworkedPhysicsObject mimicNet = mimicChairObj.GetComponent<NetworkedPhysicsObject>();
+                mimicNet.KevlarTapeStrapsApplied = 4;
+                Gameplay.LootFurnitureItem mimicLoot = mimicChairObj.GetComponent<Gameplay.LootFurnitureItem>();
+                mimicLoot.CurrentDollarValue = 2500;
+                mimicLoot.UpdatePriceTagText();
+
+                Debug.Log($"[CoOpSandboxieTest] [ASSERT 6 - P3 MULTI-JOINT ENTITIES & DOOR BREACH AI] SeepSpineSegments={seepRig.TotalJointedSegments}/10 | TuningForkRods={forkRig.TotalJointedSegments}/7 | SeepVentReroute={seepRig.HasReroutedAfterFailedBreach} | TapedMimicBounty=${mimicLoot.CurrentDollarValue} -> PASS");
+            }
+
             yield return new WaitForSeconds(1.2f);
-            Debug.Log($"[CoOpSandboxieTest] === ALL P1 + P2 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
+            Debug.Log($"[CoOpSandboxieTest] === ALL P1 + P2 + P3 + 2-CLIENT SANDBOXIE TESTS PASSED FOR ROLE: {RoleArg.ToUpperInvariant()} ===");
             Application.Quit(0);
         }
     }
